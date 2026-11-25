@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node ./dist/cli.js",
     "dev": "tsc -p tsconfig.json && node ./dist/cli.js",
-    "test": "npm run build && node ./scripts/smoke-test.mjs"
+    "test": "npm run build && node ./scripts/smoke-test.mjs && node ./scripts/test-hybrid-chains.mjs"
   },
   "engines": {
     "node": ">=20.0.0"
