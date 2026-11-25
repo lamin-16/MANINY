@@ -19,19 +19,19 @@ interface GraphqlSecurityRule {
 const GRAPHQL_SECURITY_RULES: GraphqlSecurityRule[] = [
   {
     id: "MANINY-GQL-001",
-    severity: "high",
+    severity: "medium",
     category: "code-pattern",
-    title: "Interpolated template or dynamic input passed to GraphQL builder or execution call",
-    regex: /\b(buildSchema|graphql|makeExecutableSchema)\s*\([^\r\n)]*(`[^`]*\$\{[^}]+\}[^`]*`|\b(req\.body|req\.query)\b)/i,
-    description: "Avoid constructing GraphQL schemas or executing queries from unvalidated client inputs or interpolated template strings.",
+    title: "GraphQL introspection enabled without environment restriction on line",
+    regex: /\bintrospection\s*:\s*true\b[^\r\n;,}]*(?![^\r\n]*(NODE_ENV|development|production))/i,
+    description: "Disable GraphQL schema introspection in production environments to reduce schema exposure.",
   },
   {
     id: "MANINY-GQL-002",
     severity: "medium",
     category: "code-pattern",
-    title: "GraphQL introspection explicitly enabled without environment guard on line",
-    regex: /\bintrospection\s*:\s*true\b[^\r\n;,)]*(?![^\r\n]*(NODE_ENV|production|development))/i,
-    description: "Disable GraphQL schema introspection in production or gate it explicitly behind environment checks.",
+    title: "GraphQL query executed from request input without visible depth or complexity guard",
+    regex: /\b(graphql|executeGraphQL|runQuery)\s*\([^\r\n)]*\b(req\.body|req\.query)\b[^\r\n)]*(?![^\r\n]*(depthLimit|maxDepth|complexity|validationRules))/i,
+    description: "Enforce query depth limits, complexity analysis, and field authorization on GraphQL execution entrypoints.",
   },
 ];
 
