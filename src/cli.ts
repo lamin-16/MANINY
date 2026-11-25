@@ -49,6 +49,15 @@ function buildComplianceSummary(report: PipelineReport, hasIntegrity: boolean) {
   };
 }
 
+function shouldFailGate(report: PipelineReport, failOn?: Severity): boolean {
+  if (!failOn) return false;
+  const threshold = SEVERITY_RANK[failOn];
+  return report.findings.some(
+    (f: Finding) =>
+      f.status !== "verified_fixed" && SEVERITY_RANK[f.severity] >= threshold
+  );
+}
+
 function parseArgs(argv: string[]): {
   mode: RunMode;
   workspace: string;
@@ -65,6 +74,7 @@ function parseArgs(argv: string[]): {
   includeIntegrity: boolean;
   agentProviders: AgentProviderId[];
   minSeverity?: Severity;
+  failOn?: Severity;
   reportBase?: string;
   reportFormat: ReportFormat;
 } {
@@ -83,6 +93,7 @@ function parseArgs(argv: string[]): {
   let includeIntegrity = false;
   const agentProviders: AgentProviderId[] = [];
   let minSeverity: Severity | undefined;
+  let failOn: Severity | undefined;
   let reportBase: string | undefined;
   let reportFormat: ReportFormat = "json";
 
@@ -128,6 +139,17 @@ function parseArgs(argv: string[]): {
         next === "critical"
       ) {
         minSeverity = next;
+      }
+      i++;
+    } else if (arg === "--fail-on" && next) {
+      if (
+        next === "info" ||
+        next === "low" ||
+        next === "medium" ||
+        next === "high" ||
+        next === "critical"
+      ) {
+        failOn = next;
       }
       i++;
     } else if (arg === "--mode" && next) {
@@ -182,6 +204,7 @@ function parseArgs(argv: string[]): {
     agentProviders,
     reportFormat,
     ...(minSeverity ? { minSeverity } : {}),
+    ...(failOn ? { failOn } : {}),
     ...(reportBase ? { reportBase } : {}),
   };
 }
@@ -249,6 +272,7 @@ async function main(): Promise<void> {
   const complianceSummary = args.compliance
     ? buildComplianceSummary(report, Boolean(audit))
     : undefined;
+  const gateFailed = shouldFailGate(report, args.failOn);
 
   if (args.jsonCompact) {
     console.log(
@@ -259,6 +283,7 @@ async function main(): Promise<void> {
           summary: report.summary,
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
+          ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
           items: report.findings.map((f) => ({
             id: f.id,
             ruleId: f.ruleId,
@@ -271,10 +296,7 @@ async function main(): Promise<void> {
         2
       )
     );
-    return;
-  }
-
-  if (args.agentsRequested) {
+  } else if (args.agentsRequested) {
     const configured = discoverConfiguredAgents(args.agentProviders);
     const insights = await runMultiAgentAdvisory(configured, report.findings);
     console.log(
@@ -283,6 +305,7 @@ async function main(): Promise<void> {
           ...report,
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { audit } : {}),
+          ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
           agents: {
             configuredCount: configured.length,
             providers: configured.map((c) => ({ provider: c.provider, model: c.model })),
@@ -293,20 +316,24 @@ async function main(): Promise<void> {
         2
       )
     );
-    return;
+  } else {
+    console.log(
+      JSON.stringify(
+        {
+          ...report,
+          ...(complianceSummary ? { compliance: complianceSummary } : {}),
+          ...(audit ? { audit } : {}),
+          ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
+        },
+        null,
+        2
+      )
+    );
   }
 
-  console.log(
-    JSON.stringify(
-      {
-        ...report,
-        ...(complianceSummary ? { compliance: complianceSummary } : {}),
-        ...(audit ? { audit } : {}),
-      },
-      null,
-      2
-    )
-  );
+  if (gateFailed) {
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {
