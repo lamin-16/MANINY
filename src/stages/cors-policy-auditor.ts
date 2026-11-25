@@ -1,90 +1,25 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
-import { Finding, ManinyPolicy, Severity } from "../core/types.js";
-import { resolveSafeWorkspacePath } from "../core/policy-guard.js";
+import { Finding, ManinyPolicy } from "../core/types.js";
+import { LineAuditRule, scanWorkspaceRules } from "./stage-utils.js";
 
-const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
-const SCAN_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
-
-interface CorsPolicyRule {
-  id: string;
-  severity: Severity;
-  category: Finding["category"];
-  title: string;
-  regex: RegExp;
-  description: string;
-}
-
-const CORS_POLICY_RULES: CorsPolicyRule[] = [
+const CORS_POLICY_RULES: LineAuditRule[] = [
   {
-    id: "MANINY-CRS-001",
+    id: "MANINY-COR-001",
     severity: "medium",
     category: "code-pattern",
-    title: "Wildcard '*' origin allowed in CORS configuration or header",
-    regex: /\b(Access-Control-Allow-Origin|origin)\b[^\r\n;,)]*[:=]\s*['"]\*['"]/i,
-    description: "Restrict allowed CORS origins to explicit trusted domains instead of using a wildcard '*' on sensitive endpoints.",
+    title: "CORS configuration reflects dynamic request origin or wildcard without visible allowlist check",
+    regex: /\b(configureCors|corsOptions|setCorsHeaders)\b[^\r\n;{)]*(req\.headers\.origin|origin\s*:\s*true|\*\s*)[^\r\n;{)]*(?![^\r\n]*(allowedOrigins|trustedOrigins|isAllowedOrigin|originAllowlist))/i,
+    description: "Validate incoming request origins against an explicit allowlist before granting cross-origin access.",
   },
   {
-    id: "MANINY-CRS-002",
-    severity: "high",
+    id: "MANINY-COR-002",
+    severity: "low",
     category: "code-pattern",
-    title: "Request Origin header reflected directly without visible allowlist check on line",
-    regex: /\b(origin|Access-Control-Allow-Origin)\b[^\r\n;,)]*\breq\.headers\.origin\b[^\r\n;,)]*(?![^\r\n]*(allowedOrigins|allowlist|includes|indexOf))/i,
-    description: "Validate incoming Origin headers against an explicit allowlist before reflecting them in CORS response headers.",
+    title: "CORS credentialed access paired with overly broad origin configuration",
+    regex: /\b(credentials\s*:\s*true|Access-Control-Allow-Credentials\s*[:=]\s*['"]?true['"]?)[^\r\n;,)]*(\*|req\.headers\.origin)/i,
+    description: "Avoid combining credentialed cross-origin requests with wildcard or unvalidated reflected origins.",
   },
 ];
 
-function makeCrsFindingId(ruleId: string, relFile: string, line: number): string {
-  const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
-  return `F-${hash}`;
-}
-
-async function collectFiles(dir: string, root: string): Promise<string[]> {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const results: string[] = [];
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) results.push(...(await collectFiles(path.join(dir, entry.name), root)));
-    } else if (entry.isFile() && SCAN_EXTS.has(path.extname(entry.name).toLowerCase())) {
-      const rel = path.relative(root, path.join(dir, entry.name));
-      if (rel) results.push(rel);
-    }
-  }
-  return results;
-}
-
 export async function runCorsPolicyAuditor(policy: ManinyPolicy): Promise<Finding[]> {
-  const findings: Finding[] = [];
-  const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
-  for (const relFile of files) {
-    const safePath = resolveSafeWorkspacePath(policy.workspaceRoot, relFile);
-    if (!safePath) continue;
-    let content: string;
-    try { content = await fs.readFile(safePath, "utf8"); } catch { continue; }
-    const lines = content.split(/\r?\n/);
-    for (let i = 0; i < lines.length; i++) {
-      const lineText = lines[i] ?? "";
-      const trimmed = lineText.trim();
-      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
-      for (const rule of CORS_POLICY_RULES) {
-        if (rule.regex.test(lineText)) {
-          const lineNum = i + 1;
-          findings.push({
-            id: makeCrsFindingId(rule.id, relFile, lineNum),
-            ruleId: rule.id,
-            title: rule.title,
-            category: rule.category,
-            severity: rule.severity,
-            filePath: relFile,
-            line: lineNum,
-            description: rule.description,
-            status: "detected",
-            evidence: [],
-          });
-        }
-      }
-    }
-  }
-  return findings;
+  return scanWorkspaceRules(policy, CORS_POLICY_RULES);
 }
