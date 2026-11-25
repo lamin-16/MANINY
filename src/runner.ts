@@ -36,6 +36,7 @@ import { runSsrfDnsAuditor } from "./stages/ssrf-dns-auditor.js";
 import { runRateLimitAuditor } from "./stages/rate-limit-auditor.js";
 import { runCspSecurityHeadersAuditor } from "./stages/csp-security-headers-auditor.js";
 import { runSubprocessExecAuditor } from "./stages/subprocess-exec-auditor.js";
+import { runDynamicEvalAuditor } from "./stages/dynamic-eval-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -110,6 +111,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       rlmFindings,
       cspHdrFindings,
       subExecFindings,
+      dynEvalFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -145,6 +147,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runRateLimitAuditor(policy),
       runCspSecurityHeadersAuditor(policy),
       runSubprocessExecAuditor(policy),
+      runDynamicEvalAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -182,6 +185,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...rlmFindings,
       ...cspHdrFindings,
       ...subExecFindings,
+      ...dynEvalFindings,
     ];
   }
 
