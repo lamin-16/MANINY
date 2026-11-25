@@ -119,6 +119,7 @@ function parseArgs(argv: string[]): {
   excludeStatus?: string;
   fileFilter?: string;
   excludeFile?: string;
+  excludeFilePrefix?: string;
   categoryFilter?: string;
   summaryOnly: boolean;
   countBySeverity: boolean;
@@ -161,6 +162,7 @@ function parseArgs(argv: string[]): {
   let excludeStatus: string | undefined;
   let fileFilter: string | undefined;
   let excludeFile: string | undefined;
+  let excludeFilePrefix: string | undefined;
   let categoryFilter: string | undefined;
   let summaryOnly = false;
   let countBySeverity = false;
@@ -332,6 +334,7 @@ function parseArgs(argv: string[]): {
     ...(excludeStatus ? { excludeStatus } : {}),
     ...(fileFilter ? { fileFilter } : {}),
     ...(excludeFile ? { excludeFile } : {}),
+    ...(excludeFilePrefix ? { excludeFilePrefix } : {}),
     ...(categoryFilter ? { categoryFilter } : {}),
     summaryOnly,
     countBySeverity,
@@ -358,7 +361,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-file <substr> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-file-prefix <pfx> --exclude-file <substr> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -432,6 +435,12 @@ async function main(): Promise<void> {
   if (args.categoryFilter) {
     const cf = args.categoryFilter.toLowerCase();
     report.findings = report.findings.filter((f: Finding) => f.category.toLowerCase() === cf);
+    recomputeSummary(report);
+  }
+
+  if (args.excludeFilePrefix) {
+    const pfx = args.excludeFilePrefix.toLowerCase();
+    report.findings = report.findings.filter((f: Finding) => !String(f.filePath ?? f.targetUrl ?? "").toLowerCase().startsWith(pfx));
     recomputeSummary(report);
   }
 
