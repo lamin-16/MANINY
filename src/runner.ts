@@ -38,6 +38,7 @@ import { runCspSecurityHeadersAuditor } from "./stages/csp-security-headers-audi
 import { runSubprocessExecAuditor } from "./stages/subprocess-exec-auditor.js";
 import { runDynamicEvalAuditor } from "./stages/dynamic-eval-auditor.js";
 import { runWebsocketAuditor } from "./stages/websocket-auditor.js";
+import { runFileUploadAuditor } from "./stages/file-upload-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -114,6 +115,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       subExecFindings,
       dynEvalFindings,
       wskFindings,
+      uplFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -151,6 +153,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runSubprocessExecAuditor(policy),
       runDynamicEvalAuditor(policy),
       runWebsocketAuditor(policy),
+      runFileUploadAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -190,6 +193,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...subExecFindings,
       ...dynEvalFindings,
       ...wskFindings,
+      ...uplFindings,
     ];
   }
 
