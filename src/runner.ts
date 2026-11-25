@@ -27,6 +27,7 @@ import { runNetworkFetchAuditor } from "./stages/network-fetch-auditor.js";
 import { runStorageCacheAuditor } from "./stages/storage-cache-auditor.js";
 import { runCorsHeadersAuditor } from "./stages/cors-headers-auditor.js";
 import { runTemplateHtmlAuditor } from "./stages/template-html-auditor.js";
+import { runDbOrmAuditor } from "./stages/db-orm-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -92,6 +93,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       stoCacheFindings,
       corsFindings,
       tplHtmlFindings,
+      dbOrmFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -118,6 +120,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runStorageCacheAuditor(policy),
       runCorsHeadersAuditor(policy),
       runTemplateHtmlAuditor(policy),
+      runDbOrmAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -146,6 +149,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...stoCacheFindings,
       ...corsFindings,
       ...tplHtmlFindings,
+      ...dbOrmFindings,
     ];
   }
 

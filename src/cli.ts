@@ -113,6 +113,7 @@ function parseArgs(argv: string[]): {
   top?: number;
   ruleFilter?: string;
   excludeRule?: string;
+  excludeRulePrefix?: string;
   excludeSeverity?: string;
   excludeCategory?: string;
   excludeStatus?: string;
@@ -154,6 +155,7 @@ function parseArgs(argv: string[]): {
   let top: number | undefined;
   let ruleFilter: string | undefined;
   let excludeRule: string | undefined;
+  let excludeRulePrefix: string | undefined;
   let excludeSeverity: string | undefined;
   let excludeCategory: string | undefined;
   let excludeStatus: string | undefined;
@@ -324,6 +326,7 @@ function parseArgs(argv: string[]): {
     ...(top ? { top } : {}),
     ...(ruleFilter ? { ruleFilter } : {}),
     ...(excludeRule ? { excludeRule } : {}),
+    ...(excludeRulePrefix ? { excludeRulePrefix } : {}),
     ...(excludeSeverity ? { excludeSeverity } : {}),
     ...(excludeCategory ? { excludeCategory } : {}),
     ...(excludeStatus ? { excludeStatus } : {}),
@@ -355,7 +358,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-file <substr> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-file <substr> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -459,6 +462,12 @@ async function main(): Promise<void> {
   if (args.excludeSeverity) {
     const es = args.excludeSeverity.toLowerCase();
     report.findings = report.findings.filter((f: Finding) => f.severity.toLowerCase() !== es);
+    recomputeSummary(report);
+  }
+
+  if (args.excludeRulePrefix) {
+    const pfx = args.excludeRulePrefix.toUpperCase();
+    report.findings = report.findings.filter((f: Finding) => !f.ruleId.toUpperCase().startsWith(pfx));
     recomputeSummary(report);
   }
 
