@@ -86,7 +86,7 @@ export async function runObjectPrototypeAuditor(policy: ManinyPolicy): Promise<F
       }
 
       for (const rule of OBJECT_RULES) {
-        if (!isRuleDefinitionLine(lineText) && (rule.regex.test(lineText))) {
+        if (!isRuleDefinitionLine(lineText) && !/\b(safeKey|rawKey\s*===\s*["']__proto__|__proto__\s*===\s*rawKey)\b/.test(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeObjFindingId(rule.id, relFile, lineNum),
