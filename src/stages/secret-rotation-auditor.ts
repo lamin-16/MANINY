@@ -3,20 +3,20 @@ import { LineAuditRule, scanWorkspaceRules } from "./stage-utils.js";
 
 const SECRET_ROTATION_RULES: LineAuditRule[] = [
   {
-    id: "MANINY-SEC-001",
+    id: "MANINY-SRT-001",
     severity: "high",
     category: "code-pattern",
-    title: "Secret or credential provisioning lacks visible rotation, expiry, or vault guard",
-    regex: /\b(rotateSecret|provisionApiKey|issueAccessKey)\s*\([^\r\n)]*(\b(plaintextKey|staticSecret|rawToken)\b|\$\{)[^\r\n)]*(?![^\r\n]*(rotateKey|verifyExpiration|vaultClient|expiresAt))/i,
-    description: "Enforce key rotation, expiration bounds, and secure secret storage when provisioning or rotating credentials.",
+    title: "Secret rotation lacks visible grace period, dual-key verification, or audit trail",
+    regex: /\b(rotateManagedSecret|scheduleSecretRotation|retireSecretVersion)\s*\([^\r\n)]*(\b(secretId|version|grace|req\.body)\b|\$\{)[^\r\n)]*(?![^\r\n]*(gracePeriod|dualKeyVerify|auditSecretRotation|enforceRotationWindow))/i,
+    description: "Enforce rotation grace periods, support dual-key verification during cutover, and log secret rotations.",
   },
   {
-    id: "MANINY-SEC-002",
+    id: "MANINY-SRT-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Secret rotation or key expiration check explicitly disabled",
-    regex: /\b(skipKeyRotation|disableSecretExpiry)\b[^\r\n;,)]*[:=]\s*true/i,
-    description: "Keep secret rotation policies and credential expiration checks enabled.",
+    title: "Automatic secret rotation explicitly disabled",
+    regex: /\b(disableSecretRotation|skipRotationCheck)\b[^\r\n;,)]*[:=]\s*true/i,
+    description: "Keep secret rotation policies active to minimize long-lived credential exposure.",
   },
 ];
 
