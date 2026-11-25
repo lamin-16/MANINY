@@ -20,39 +20,32 @@ const SESSION_COOKIE_RULES: SessionCookieRule[] = [
   {
     id: "MANINY-SES-001",
     severity: "medium",
-    category: "http-hardening",
-    title: "Explicitly disabled httpOnly flag on cookie configuration",
-    regex: /\bhttpOnly\s*:\s*false\b/,
-    description: "Enable httpOnly on sensitive session/auth cookies to reduce client-side script access risks.",
+    category: "code-pattern",
+    title: "Cookie or session configuration lacks visible httpOnly, sameSite, or secure flag on line",
+    regex: /\b(res\.cookie|setCookie|expressSession|cookieOptions)\s*\([^\r\n)]*(?![^\r\n]*(httpOnly|sameSite|secure))/i,
+    description: "Set secure cookie flags (httpOnly, sameSite, and secure in production) on session and authentication cookies.",
   },
   {
     id: "MANINY-SES-002",
-    severity: "medium",
-    category: "http-hardening",
-    title: "Explicitly disabled secure flag on cookie configuration",
-    regex: /\bsecure\s*:\s*false\b/,
-    description: "Enable secure on cookies in production so they are transmitted only over HTTPS.",
+    severity: "high",
+    category: "code-pattern",
+    title: "Session secret uses hardcoded literal or interpolated template expression",
+    regex: /\bsession\s*\([^\r\n)]*\bsecret\s*:\s*(['"][^'"]{1,32}['"]|`[^`]*\$\{[^}]+\}[^`]*`)/i,
+    description: "Load session signing secrets from a dedicated runtime secret store or environment variable without hardcoded literals or interpolation.",
   },
 ];
 
 function makeSesFindingId(ruleId: string, relFile: string, line: number): string {
-  const hash = crypto
-    .createHash("sha256")
-    .update(`${ruleId}:${relFile}:${line}`)
-    .digest("hex")
-    .slice(0, 10);
+  const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
   return `F-${hash}`;
 }
 
 async function collectFiles(dir: string, root: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const results: string[] = [];
-
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) {
-        results.push(...(await collectFiles(path.join(dir, entry.name), root)));
-      }
+      if (!SKIP_DIRS.has(entry.name)) results.push(...(await collectFiles(path.join(dir, entry.name), root)));
     } else if (entry.isFile() && SCAN_EXTS.has(path.extname(entry.name).toLowerCase())) {
       const rel = path.relative(root, path.join(dir, entry.name));
       if (rel) results.push(rel);
@@ -64,26 +57,16 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
 export async function runSessionCookieAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
-
   for (const relFile of files) {
     const safePath = resolveSafeWorkspacePath(policy.workspaceRoot, relFile);
     if (!safePath) continue;
-
     let content: string;
-    try {
-      content = await fs.readFile(safePath, "utf8");
-    } catch {
-      continue;
-    }
-
+    try { content = await fs.readFile(safePath, "utf8"); } catch { continue; }
     const lines = content.split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
       const lineText = lines[i] ?? "";
       const trimmed = lineText.trim();
-      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) {
-        continue;
-      }
-
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of SESSION_COOKIE_RULES) {
         if (rule.regex.test(lineText)) {
           const lineNum = i + 1;
@@ -103,6 +86,5 @@ export async function runSessionCookieAuditor(policy: ManinyPolicy): Promise<Fin
       }
     }
   }
-
   return findings;
 }
