@@ -1,14 +1,9 @@
 import path from "node:path";
-import { ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
+import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
 import { listRules } from "./core/registry.js";
 import { AgentProviderId, discoverConfiguredAgents, runMultiAgentAdvisory } from "./core/agents.js";
 import { buildExecutionAudit } from "./core/audit-trail.js";
-import { runDetector } from "./stages/detector.js";
-import { runSafeVerifier } from "./stages/verifier.js";
-import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
-import { runFixer } from "./stages/fixer.js";
-import { runDefenderReviewer } from "./stages/reviewer.js";
-import { buildReport } from "./stages/reporter.js";
+import { executeManiny } from "./runner.js";
 
 const SEVERITY_RANK: Record<Severity, number> = {
   info: 0,
@@ -158,33 +153,6 @@ function parseArgs(argv: string[]): {
   };
 }
 
-async function runWithUrlOnlySupport(args: ReturnType<typeof parseArgs>, policy: ManinyPolicy) {
-  if (!args.urlOnly) {
-    const { executeManiny } = await import("./runner.js");
-    return executeManiny({
-      mode: args.mode,
-      policy,
-      targetUrls: args.targetUrls,
-      reportFormat: args.reportFormat,
-      ...(args.reportBase ? { reportBasePath: args.reportBase } : {}),
-    });
-  }
-
-  let findings = await runDetector(policy, args.targetUrls, { skipWorkspaceScan: true });
-  if (args.mode === "verify" || args.mode === "pipeline") {
-    findings = await runSafeVerifier(findings, policy);
-    const simFindings = await runAdversarialSimulation(args.targetUrls, policy);
-    findings = [...findings, ...simFindings];
-  }
-  if (args.mode === "fix" || args.mode === "pipeline") {
-    findings = await runFixer(findings, policy);
-  }
-  if (args.mode === "review" || args.mode === "pipeline") {
-    findings = await runDefenderReviewer(findings, policy);
-  }
-  return buildReport(args.mode, policy, findings);
-}
-
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
@@ -229,11 +197,18 @@ async function main(): Promise<void> {
     blockedPathSubstrings: [".env", ".git", "node_modules", "id_rsa", "credentials"],
   };
 
-  const report = await runWithUrlOnlySupport(args, policy);
+  const report = await executeManiny({
+    mode: args.mode,
+    policy,
+    targetUrls: args.targetUrls,
+    reportFormat: args.reportFormat,
+    skipWorkspaceScan: args.urlOnly,
+    ...(args.reportBase ? { reportBasePath: args.reportBase } : {}),
+  });
 
   if (args.minSeverity) {
     const threshold = SEVERITY_RANK[args.minSeverity];
-    report.findings = report.findings.filter((f) => SEVERITY_RANK[f.severity] >= threshold);
+    report.findings = report.findings.filter((f: Finding) => SEVERITY_RANK[f.severity] >= threshold);
     recomputeSummary(report);
   }
 
