@@ -19,6 +19,7 @@ import { runSessionCookieAuditor } from "./stages/session-cookie-auditor.js";
 import { runCorsOriginAuditor } from "./stages/cors-origin-auditor.js";
 import { runSecretRotationAuditor } from "./stages/secret-rotation-auditor.js";
 import { runReverseProxyAuditor } from "./stages/reverse-proxy-auditor.js";
+import { runSessionStorageAuditor } from "./stages/session-storage-auditor.js";
 import { runCommandExecutionAuditor } from "./stages/command-execution-auditor.js";
 import { runSerializationAuditor } from "./stages/serialization-auditor.js";
 import { runMessagingAuditor } from "./stages/messaging-auditor.js";
