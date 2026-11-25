@@ -71,6 +71,7 @@ import { runRaceConditionAuditor } from "./stages/race-condition-auditor.js";
 import { runTimingSidechannelAuditor } from "./stages/timing-sidechannel-auditor.js";
 import { runResourceExhaustionAuditor } from "./stages/resource-exhaustion-auditor.js";
 import { runHardcodedCredentialsAuditor } from "./stages/hardcoded-credentials-auditor.js";
+import { runDependencySupplyChainAuditor } from "./stages/dependency-supply-chain-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
