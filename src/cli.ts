@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
 import { listRules } from "./core/registry.js";
@@ -12,6 +13,43 @@ const SEVERITY_RANK: Record<Severity, number> = {
   high: 3,
   critical: 4,
 };
+
+const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
+const CODE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json"]);
+
+async function collectWorkspaceStats(rootDir: string): Promise<{
+  workspaceRoot: string;
+  filesCount: number;
+  totalLines: number;
+  rulesRegistered: number;
+}> {
+  let filesCount = 0;
+  let totalLines = 0;
+
+  async function walk(dir: string): Promise<void> {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        if (!SKIP_DIRS.has(entry.name)) {
+          await walk(path.join(dir, entry.name));
+        }
+      } else if (entry.isFile() && CODE_EXTS.has(path.extname(entry.name).toLowerCase())) {
+        const full = path.join(dir, entry.name);
+        const content = await fs.readFile(full, "utf8");
+        filesCount++;
+        totalLines += content.split(/\r?\n/).length;
+      }
+    }
+  }
+
+  await walk(rootDir);
+  return {
+    workspaceRoot: rootDir,
+    filesCount,
+    totalLines,
+    rulesRegistered: listRules().length,
+  };
+}
 
 function recomputeSummary(report: PipelineReport): void {
   const f = report.findings;
@@ -68,6 +106,7 @@ function parseArgs(argv: string[]): {
   urlOnly: boolean;
   jsonCompact: boolean;
   compliance: boolean;
+  stats: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -87,6 +126,7 @@ function parseArgs(argv: string[]): {
   let urlOnly = false;
   let jsonCompact = false;
   let compliance = false;
+  let stats = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -103,6 +143,8 @@ function parseArgs(argv: string[]): {
 
     if (arg === "--list-rules") {
       shouldListRules = true;
+    } else if (arg === "--stats") {
+      stats = true;
     } else if (arg === "--url-only") {
       urlOnly = true;
     } else if (arg === "--json-compact") {
@@ -197,6 +239,7 @@ function parseArgs(argv: string[]): {
     urlOnly,
     jsonCompact,
     compliance,
+    stats,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -211,6 +254,12 @@ function parseArgs(argv: string[]): {
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args.stats) {
+    const s = await collectWorkspaceStats(args.workspace);
+    console.log(JSON.stringify(s, null, 2));
+    return;
+  }
 
   if (args.listRules) {
     const rules = listRules().map((r) => ({
