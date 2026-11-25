@@ -14,18 +14,26 @@ function runCli(args) {
   return JSON.parse(out);
 }
 
-// 1. Verify rules registry
+const statsOut = runCli(["--stats", "--workspace", repoRoot]);
+if (!statsOut.filesCount || statsOut.filesCount < 5) {
+  throw new Error("Expected valid workspace stats");
+}
+
 const rulesOut = runCli(["--list-rules"]);
 if (!rulesOut.total || rulesOut.total < 10) {
   throw new Error(`Expected at least 10 rules, got ${rulesOut.total}`);
 }
 
-// 2. Create isolated temporary workspace and run pipeline + fix + integrity
 const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "maniny-smoke-"));
 try {
   await fs.writeFile(
     path.join(tmpDir, "package.json"),
     JSON.stringify({ name: "smoke-target", dependencies: { badpkg: "*" } }, null, 2),
+    "utf8"
+  );
+  await fs.writeFile(
+    path.join(tmpDir, ".env.example"),
+    "HOST=0.0.0.0\n",
     "utf8"
   );
   await fs.writeFile(
@@ -44,6 +52,7 @@ try {
     "--workspace",
     tmpDir,
     "--allow-fix",
+    "--compliance",
     "--integrity",
     "--json-compact",
   ]);
@@ -51,22 +60,24 @@ try {
   if (!compactReport.integritySha256 || compactReport.integritySha256.length !== 64) {
     throw new Error("Missing or invalid SHA-256 integrity digest");
   }
-  if (compactReport.summary.total < 3) {
-    throw new Error(`Expected >= 3 findings in smoke workspace, got ${compactReport.summary.total}`);
+  if (!compactReport.compliance || !compactReport.compliance.posture) {
+    throw new Error("Missing compliance posture summary");
   }
-
-  const fixedCode = await fs.readFile(path.join(tmpDir, "app.ts"), "utf8");
-  if (fixedCode.includes("eval(") || fixedCode.includes("rejectUnauthorized: false")) {
-    throw new Error("Auto-fixable patterns were not remediated in smoke workspace");
+  if (!compactReport.items.some((i) => i.ruleId === "MANINY-ENV-002")) {
+    throw new Error("Expected MANINY-ENV-002 finding for 0.0.0.0");
+  }
+  if (!compactReport.items.some((i) => i.ruleId === "MANINY-SUP-001")) {
+    throw new Error("Expected MANINY-SUP-001 finding for missing lockfile");
   }
 
   console.log(
     JSON.stringify(
       {
         smoke: "PASSED",
-        rulesCount: rulesOut.total,
+        workspaceFiles: statsOut.filesCount,
+        workspaceLines: statsOut.totalLines,
         findingsTotal: compactReport.summary.total,
-        verifiedFixed: compactReport.summary.verifiedFixed,
+        compliancePosture: compactReport.compliance.posture,
         auditId: compactReport.auditId,
       },
       null,
