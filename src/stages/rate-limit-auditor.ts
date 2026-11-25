@@ -18,24 +18,24 @@ interface RateLimitRule {
 
 const RATE_LIMIT_RULES: RateLimitRule[] = [
   {
-    id: "MANINY-RLM-001",
+    id: "MANINY-RTL-001",
     severity: "medium",
     category: "code-pattern",
-    title: "Authentication or credential POST route lacks visible rate-limiting middleware on line",
-    regex: /\b(router|app)\.post\s*\(\s*['"][^'"]*(login|signin|register|reset-password|forgot-password|otp|verify-code)[^'"]*['"][^\r\n)]*(?![^\r\n]*(rateLimit|limiter|throttle|slowDown))/i,
-    description: "Apply rate limiting and brute-force protection middleware to authentication, registration, OTP, and password-reset endpoints.",
+    title: "Authentication or verification handler lacks visible rate-limit or attempt guard on line",
+    regex: /\b(loginHandler|handleLogin|verifyOtp|resetPassword)\b[^\r\n;{)]*(?![^\r\n]*(rateLimit|throttle|attempts|lockout|limiter))/i,
+    description: "Apply rate limiting, attempt tracking, or backoff controls to login, OTP verification, and password reset endpoints.",
   },
   {
-    id: "MANINY-RLM-002",
-    severity: "low",
+    id: "MANINY-RTL-002",
+    severity: "medium",
     category: "code-pattern",
-    title: "Sub-250ms fixed timeout used inside authentication or brute-force handler",
-    regex: /\b(login|signin|auth|verifyOtp|bruteForce)[^\r\n{;]*\bsetTimeout\s*\([^\r\n,)]+,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9])\s*\)/i,
-    description: "Avoid near-zero or sub-250ms artificial delays for auth throttling; rely on proper rate limiters, lockouts, or progressive backoff.",
+    title: "Rate limiting explicitly disabled or bypassed on line",
+    regex: /\b(skipRateLimit|disableRateLimit|rateLimitEnabled)\b[^\r\n;,)]*[:=]\s*(true|false)/i,
+    description: "Keep rate limiting enabled on sensitive and public endpoints to mitigate brute-force and abuse traffic.",
   },
 ];
 
-function makeRlmFindingId(ruleId: string, relFile: string, line: number): string {
+function makeRtlFindingId(ruleId: string, relFile: string, line: number): string {
   const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
   return `F-${hash}`;
 }
@@ -71,7 +71,7 @@ export async function runRateLimitAuditor(policy: ManinyPolicy): Promise<Finding
         if (rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
-            id: makeRlmFindingId(rule.id, relFile, lineNum),
+            id: makeRtlFindingId(rule.id, relFile, lineNum),
             ruleId: rule.id,
             title: rule.title,
             category: rule.category,
