@@ -21,17 +21,17 @@ const UPLOAD_SAFETY_RULES: UploadSafetyRule[] = [
     id: "MANINY-UPL-001",
     severity: "high",
     category: "code-pattern",
-    title: "Interpolated template literal in uploaded file name or storage path",
-    regex: /\b(upload|fileName|filename|originalname)\b[^\r\n]*`[^`]*\$\{[^}]+\}[^`]*`/i,
-    description: "Avoid using client-supplied or raw interpolated filenames in storage paths; generate safe identifiers and validate extension allowlists.",
+    title: "File upload handler configured without visible MIME, extension, or size constraint on line",
+    regex: /\b(multer|formidable|busboy|saveUploadedFile)\s*\([^\r\n)]*(?![^\r\n]*(allowedMime|allowedTypes|limits|fileFilter|maxSize))/i,
+    description: "Enforce file size limits, MIME type allowlists, and strict extension checks when accepting uploaded files.",
   },
   {
     id: "MANINY-UPL-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Upload handler without explicit mime/extension or size check on line",
-    regex: /\b(handleUpload|uploadFile|multer)\s*\([^\r\n)]*(?![^\r\n]*(mimetype|allowedTypes|maxSize|extname|basename))/i,
-    description: "Enforce file size limits, allowed MIME/extension checks, and safe storage directories on upload handlers.",
+    title: "Uploaded file name used directly in path or write operation without visible sanitization",
+    regex: /\b(originalname|uploadedFile\.name|file\.name)\b[^\r\n;,)]*(?![^\r\n]*(basename|sanitize|uuid|randomUUID|resolveSafeWorkspacePath))/i,
+    description: "Replace client-supplied upload filenames with generated safe identifiers or sanitized basenames confined to a dedicated storage root.",
   },
 ];
 
