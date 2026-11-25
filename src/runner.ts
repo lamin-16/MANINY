@@ -118,6 +118,7 @@ import { runSecretVaultAuditor } from "./stages/secret-vault-auditor.js";
 import { runQuotaGovernanceAuditor } from "./stages/quota-governance-auditor.js";
 import { runAnomalyGuardAuditor } from "./stages/anomaly-guard-auditor.js";
 import { runWebAuthnPasskeyAuditor } from "./stages/webauthn-passkey-auditor.js";
+import { runOidcFederationAuditor } from "./stages/oidc-federation-auditor.js";
 import { runCsrfProtectionAuditor } from "./stages/csrf-protection-auditor.js";
 import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
