@@ -41,6 +41,7 @@ import { runWebsocketAuditor } from "./stages/websocket-auditor.js";
 import { runFileUploadAuditor } from "./stages/file-upload-auditor.js";
 import { runOpenRedirectCorsAuditor } from "./stages/open-redirect-cors-auditor.js";
 import { runJwtTokenAuditor } from "./stages/jwt-token-auditor.js";
+import { runGraphqlSecurityAuditor } from "./stages/graphql-security-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -120,6 +121,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       uplFindings,
       openRdrCorsFindings,
       jwtTokFindings,
+      gqlSecFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -160,6 +162,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runFileUploadAuditor(policy),
       runOpenRedirectCorsAuditor(policy),
       runJwtTokenAuditor(policy),
+      runGraphqlSecurityAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -202,6 +205,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...uplFindings,
       ...openRdrCorsFindings,
       ...jwtTokFindings,
+      ...gqlSecFindings,
     ];
   }
 
