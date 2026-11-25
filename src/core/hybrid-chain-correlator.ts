@@ -30,6 +30,9 @@ export function correlateHybridChains(findings: Finding[]): CorrelatedAttackChai
   const codeOrProto = findings.filter((f) =>
     /^(MANINY-CODE|MANINY-OBJ|MANINY-PRP|MANINY-RGX)/.test(f.ruleId)
   );
+  const exposureOrAuth = findings.filter((f) =>
+    /^(MANINY-SEC|MANINY-AUTH|MANINY-INJ|MANINY-SQL|MANINY-XSS)/.test(f.ruleId)
+  );
 
   if (ssrfOrRedirect.length > 0 && authOrHeaders.length > 0) {
     const matched = [...ssrfOrRedirect.slice(0, 3), ...authOrHeaders.slice(0, 3)];
@@ -50,6 +53,18 @@ export function correlateHybridChains(findings: Finding[]): CorrelatedAttackChai
       chainId: "CHAIN-HYBRID-EXEC-STATE-02",
       title: "Execution or object-state mutation vector requiring strict input/key containment",
       severityScore: hasVerified ? 8.8 : 6.9,
+      findingIds: matched.map((m) => m.id),
+      stagesInvolved: collectStages(matched),
+    });
+  }
+
+  if (exposureOrAuth.length > 0) {
+    const matched = exposureOrAuth.slice(0, 4);
+    const hasVerified = matched.some((m) => m.status === "verified_exploitable");
+    chains.push({
+      chainId: "CHAIN-HYBRID-EXPOSURE-AUTH-03",
+      title: "Sensitive exposure, authentication, or injection vector requiring hard boundary controls",
+      severityScore: hasVerified ? 9.4 : 7.8,
       findingIds: matched.map((m) => m.id),
       stagesInvolved: collectStages(matched),
     });
