@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { Finding, ManinyPolicy, Severity } from "../core/types.js";
 import { resolveSafeWorkspacePath } from "../core/policy-guard.js";
+import { isRuleDefinitionLine } from "./stage-utils.js";
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
 const SCAN_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -75,7 +76,7 @@ export async function runPathTraversalAuditor(policy: ManinyPolicy): Promise<Fin
       const trimmed = lineText.trim();
       if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of PATH_TRAVERSAL_RULES) {
-        if (rule.regex.test(lineText) && !(rule.id === "MANINY-PTH-001" && isGuardedByContext(lines, i, lineText))) {
+        if (!isRuleDefinitionLine(lineText) && rule.regex.test(lineText) && !(rule.id === "MANINY-PTH-001" && isGuardedByContext(lines, i, lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makePthFindingId(rule.id, relFile, lineNum),

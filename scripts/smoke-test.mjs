@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 
 const repoRoot = process.cwd();
 const cliPath = path.join(repoRoot, "dist", "cli.js");
@@ -68,6 +69,38 @@ try {
   }
   if (!compactReport.items.some((i) => i.ruleId === "MANINY-SUP-001")) {
     throw new Error("Expected MANINY-SUP-001 finding for missing lockfile");
+  }
+  // RULE_DEF_PROBE
+  const stageUtils = await import(pathToFileURL(path.join(repoRoot, "dist", "stages", "stage-utils.js")).href);
+  const probeDir = path.join(tmpDir, "rule-def-probe");
+  await fs.mkdir(probeDir);
+  await fs.writeFile(
+    path.join(probeDir, "probe.ts"),
+    [
+      "const a = {",
+      '  title: "dangerMarker call",',
+      '  description: "dangerMarker(x)",',
+      "  regex: /dangerMarker/,",
+      "};",
+      'const b = new RegExp("dangerMarker");',
+      "dangerMarker(userInput);",
+    ].join("\n"),
+    "utf8"
+  );
+  const probeRules = [
+    { id: "SMOKE-PROBE-001", severity: "low", category: "code-pattern", title: "probe", regex: /dangerMarker/, description: "probe" },
+  ];
+  const probeLines = async (options) =>
+    (await stageUtils.scanWorkspaceRules({ workspaceRoot: probeDir }, probeRules, options))
+      .map((f) => f.line)
+      .sort((x, y) => x - y);
+  const defaultHits = JSON.stringify(await probeLines());
+  if (defaultHits !== "[7]") {
+    throw new Error("Rule definition lines must be ignored, expected [7] got " + defaultHits);
+  }
+  const strictHits = JSON.stringify(await probeLines({ skipRegExpCtor: false }));
+  if (strictHits !== "[6,7]") {
+    throw new Error("RegExp constructor lines must be detected when not skipped, expected [6,7] got " + strictHits);
   }
 
   console.log(

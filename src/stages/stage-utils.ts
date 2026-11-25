@@ -24,7 +24,8 @@ export function makeStageFindingId(ruleId: string, relFile: string, line: number
 
 async function collectWorkspaceFiles(dir: string, root: string): Promise<string[]> {
   const safeRoot = path.resolve(root);
-  const safeDir = resolveSafeWorkspacePath(safeRoot, path.relative(safeRoot, dir) || ".");
+  const relDir = path.relative(safeRoot, dir);
+  const safeDir = relDir === "" ? safeRoot : resolveSafeWorkspacePath(safeRoot, relDir);
   if (!safeDir) return [];
   const entries = await fs.readdir(safeDir, { withFileTypes: true });
   const results: string[] = [];
@@ -42,7 +43,18 @@ async function collectWorkspaceFiles(dir: string, root: string): Promise<string[
   return results;
 }
 
-export async function scanWorkspaceRules(policy: ManinyPolicy, rules: LineAuditRule[]): Promise<Finding[]> {
+const RULE_DEFINITION_LINE = /^\s*(?:title|description|regex)\s*:/;
+
+export function isRuleDefinitionLine(lineText: string, skipRegExpCtor = true): boolean {
+  if (RULE_DEFINITION_LINE.test(lineText)) return true;
+  return skipRegExpCtor && lineText.includes("new RegExp(");
+}
+
+export interface ScanOptions {
+  skipRegExpCtor?: boolean;
+}
+
+export async function scanWorkspaceRules(policy: ManinyPolicy, rules: LineAuditRule[], options: ScanOptions = {}): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectWorkspaceFiles(policy.workspaceRoot, policy.workspaceRoot);
   for (const relFile of files) {
@@ -59,7 +71,7 @@ export async function scanWorkspaceRules(policy: ManinyPolicy, rules: LineAuditR
       const trimmed = lineText.trim();
       if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of activeRules) {
-        if (rule.regex.test(lineText)) {
+        if (!isRuleDefinitionLine(lineText, options.skipRegExpCtor ?? true) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makeStageFindingId(rule.id, relFile, lineNum),

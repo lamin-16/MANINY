@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { Finding, ManinyPolicy, Severity } from "../core/types.js";
 import { resolveSafeWorkspacePath } from "../core/policy-guard.js";
+import { isRuleDefinitionLine } from "./stage-utils.js";
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
 const SCAN_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -68,7 +69,7 @@ export async function runRegexSecurityAuditor(policy: ManinyPolicy): Promise<Fin
       const trimmed = lineText.trim();
       if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of REGEX_SECURITY_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isRuleDefinitionLine(lineText, false) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makeRgxFindingId(rule.id, relFile, lineNum),

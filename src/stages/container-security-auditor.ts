@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { Finding, ManinyPolicy, Severity } from "../core/types.js";
 import { resolveSafeWorkspacePath } from "../core/policy-guard.js";
+import { isRuleDefinitionLine } from "./stage-utils.js";
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
 const SCAN_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".sh", ".yml", ".yaml", ".dockerfile"]);
@@ -72,7 +73,7 @@ export async function runContainerSecurityAuditor(policy: ManinyPolicy): Promise
       const trimmed = lineText.trim();
       if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("#")) continue;
       for (const rule of CONTAINER_SECURITY_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isRuleDefinitionLine(lineText) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makeCntFindingId(rule.id, relFile, lineNum),
