@@ -27,7 +27,7 @@ async function collectWorkspaceStats(rootDir: string): Promise<{
   let totalLines = 0;
 
   async function walk(dir: string): Promise<void> {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
+const entries = await fs.readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
       if (entry.isDirectory()) {
         if (!SKIP_DIRS.has(entry.name)) {
@@ -248,12 +248,14 @@ function parseArgs(argv: string[]): {
   countByRule: boolean;
   failOn?: Severity;
   reportBase?: string;
+  topDistinctAnomalyRank: boolean;
   reportFormat: ReportFormat;
 } {
   let mode: RunMode = "pipeline";
   let workspace = process.cwd();
   const allowHosts: string[] = [];
   const targetUrls: string[] = [];
+  let topDistinctAnomalyRank = false;
   let allowProbes = false;
   let allowFix = false;
   let urlOnly = false;
@@ -406,8 +408,12 @@ function parseArgs(argv: string[]): {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
-
-    if (arg === "--sort-by" && next && (next === "severity" || next === "line" || next === "file")) {
+    if (arg === "--top-distinct-anomaly-rank") {
+      topDistinctAnomalyRank = true;
+    } else if (arg === "--top-distinct-anomaly-rank") {
+    } else if (arg === "--top-distinct-anomaly-rank") {
+    } else if (arg === "--top-distinct-anomaly-rank") {
+    } else if (arg === "--sort-by" && next && (next === "severity" || next === "line" || next === "file")) {
       sortBy = next;
       i++;
     } else if (arg === "--sort-by <severity|line|file> --group-by-severity") {
@@ -532,6 +538,7 @@ function parseArgs(argv: string[]): {
   }
 
   return {
+    topDistinctAnomalyRank,
     mode,
     workspace: path.resolve(workspace),
     allowHosts,
@@ -690,8 +697,7 @@ function parseArgs(argv: string[]): {
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-
-  if (args.showHelp) {
+if (args.showHelp) {
     console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-line <num> --exclude-file-suffix <sfx> --exclude-file-prefix <pfx> --exclude-file <substr> --count-by-rule --count-by-category --sort-by-severity --sort-by-file --sort-by-line --only-status <status> --only-file <path> --only-category <cat> --only-rule <id> --max-severity <sev> --min-severity <sev> --no-target-url --has-target-url --no-evidence --has-evidence --line <num> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
@@ -749,7 +755,7 @@ async function main(): Promise<void> {
   };
 
   const report = await executeManiny({
-    mode: args.mode,
+mode: args.mode,
     policy,
     targetUrls: args.targetUrls,
     reportFormat: args.reportFormat,
@@ -1015,6 +1021,50 @@ async function main(): Promise<void> {
         2
       )
     );
+
+  if (args.topDistinctAnomalyRank) {
+    const map = new Map();
+    for (const f of report.findings) {
+      const key = `${f.filePath ?? "unknown"}@${f.ruleId}@${f.severity}@${f.category}@${f.status}`;
+      const entry = map.get(key) ?? { files: new Set(), rules: new Set(), severities: new Set(), categories: new Set(), total: 0 };
+      entry.files.add(f.filePath ?? "unknown");
+      entry.rules.add(f.ruleId);
+      entry.severities.add(f.severity);
+      entry.categories.add(f.category);
+      entry.total += 1;
+      map.set(key, entry);
+    }
+    const ranked = [...map.entries()].sort(
+      (a, b) =>
+        b[1].files.size - a[1].files.size ||
+        b[1].rules.size - a[1].rules.size ||
+        b[1].severities.size - a[1].severities.size ||
+        b[1].categories.size - a[1].categories.size ||
+        b[1].total - a[1].total ||
+        a[0].localeCompare(b[0])
+    );
+    console.log(
+      JSON.stringify(
+        {
+          topDistinctAnomalyRank: Object.fromEntries(
+            ranked.map(([k, v]) => [
+              k,
+              {
+                distinctFiles: v.files.size,
+                distinctRules: v.rules.size,
+                distinctSeverities: v.severities.size,
+                distinctCategories: v.categories.size,
+                totalFindings: v.total,
+              },
+            ])
+          ),
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
   } else if (args.jsonCompact) {
     console.log(
       JSON.stringify(
