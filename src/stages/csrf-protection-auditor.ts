@@ -1,5 +1,5 @@
 import { Finding, ManinyPolicy } from "../core/types.js";
-import { LineAuditRule, scanWorkspaceRules } from "./stage-utils.js";
+import { LineAuditRule, scanWorkspaceRules, isRuleDefinitionLine } from "./stage-utils.js";
 
 const CSRF_PROTECTION_RULES: LineAuditRule[] = [
   {
@@ -19,10 +19,6 @@ const CSRF_PROTECTION_RULES: LineAuditRule[] = [
     description: "Avoid disabling CSRF protection or setting permissive SameSite=None without strict cross-site safeguards.",
   },
 ];
-
-function isCsrfRuleDefLine(lineText: string): boolean {
-  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
-}
 
 export async function runCsrfProtectionAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   return scanWorkspaceRules(policy, CSRF_PROTECTION_RULES);

@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { Finding, ManinyPolicy, Severity } from "../core/types.js";
 import { resolveSafeWorkspacePath } from "../core/policy-guard.js";
+import { isRuleDefinitionLine } from "./stage-utils.js";
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
 const SCAN_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".yaml", ".yml"]);
@@ -61,10 +62,6 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
-function isCspSecHdrRuleLine(lineText: string): boolean {
-  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
-}
-
 export async function runCspSecurityHeadersAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -89,7 +86,7 @@ export async function runCspSecurityHeadersAuditor(policy: ManinyPolicy): Promis
       }
 
       for (const rule of CSP_SECURITY_RULES) {
-        if (!isCspSecHdrRuleLine(lineText) && rule.regex.test(lineText)) {
+        if (!isRuleDefinitionLine(lineText) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makeCspFindingId(rule.id, relFile, lineNum),

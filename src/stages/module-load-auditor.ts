@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { Finding, ManinyPolicy, Severity } from "../core/types.js";
 import { resolveSafeWorkspacePath } from "../core/policy-guard.js";
+import { isRuleDefinitionLine } from "./stage-utils.js";
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
 const SCAN_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -61,10 +62,6 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
-function isModuleRuleDefLine(lineText: string): boolean {
-  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
-}
-
 export async function runModuleLoadAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -89,7 +86,7 @@ export async function runModuleLoadAuditor(policy: ManinyPolicy): Promise<Findin
       }
 
       for (const rule of MODULE_LOAD_RULES) {
-        if (!isModuleRuleDefLine(lineText) && (rule.regex.test(lineText))) {
+        if (!isRuleDefinitionLine(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeModFindingId(rule.id, relFile, lineNum),

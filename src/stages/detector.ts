@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { Finding, ManinyPolicy } from "../core/types.js";
 import { listRules } from "../core/registry.js";
 import { isHostInAllowedScope, resolveSafeWorkspacePath } from "../core/policy-guard.js";
+import { isRuleDefinitionLine } from "./stage-utils.js";
 
 const IGNORED_DIRS = new Set([
   ".git",
@@ -50,10 +51,6 @@ function isCommentOrRegexPatternLine(trimmedLine: string): boolean {
     return true;
   }
   return false;
-}
-
-function isRuleMetadataLine(trimmed: string): boolean {
-  return /^(title|description|regex)\s*:/.test(trimmed);
 }
 
 async function walkWorkspaceFiles(dirPath: string, rootDir: string): Promise<string[]> {
@@ -117,7 +114,7 @@ export async function runDetector(
       for (let i = 0; i < lines.length; i++) {
         const lineText = lines[i] ?? "";
         const trimmed = lineText.trim();
-        if (isCommentOrRegexPatternLine(trimmed) || isRuleMetadataLine(trimmed)) {
+        if (isCommentOrRegexPatternLine(trimmed) || isRuleDefinitionLine(lineText)) {
           continue;
         }
 
