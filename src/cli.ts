@@ -1,4 +1,4 @@
-import { assessExploitabilityChains } from "./core/exploit-chain-verifier.js";
+import { assessExploitabilityChains, buildAttackVerificationReport } from "./core/exploit-chain-verifier.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
@@ -271,12 +271,14 @@ function parseArgs(argv: string[]): {
   topDistinctAuditLogRank: boolean;
   topDistinctVerifiedRank: boolean;
   topExploitabilityRank: boolean;
+  attackReport: boolean;
   reportFormat: ReportFormat;
 } {
   let mode: RunMode = "pipeline";
   let workspace = process.cwd();
   const allowHosts: string[] = [];
   const targetUrls: string[] = [];
+  let attackReport = false;
   let topExploitabilityRank = false;
   let topDistinctVerifiedRank = false;
   let topDistinctAuditLogRank = false;
@@ -451,7 +453,9 @@ function parseArgs(argv: string[]): {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
-    if (arg === "--top-exploitability-rank") {
+    if (arg === "--attack-report") {
+      attackReport = true;
+    } else if (arg === "--top-exploitability-rank") {
       topExploitabilityRank = true;
     } else if (arg === "--top-distinct-verified-rank") {
       topDistinctVerifiedRank = true;
@@ -623,6 +627,7 @@ function parseArgs(argv: string[]): {
   }
 
   return {
+    attackReport,
     topExploitabilityRank,
     topDistinctVerifiedRank,
     topDistinctAuditLogRank,
@@ -1969,6 +1974,13 @@ mode: args.mode,
     console.log(JSON.stringify({ topExploitabilityRank: ranked }, null, 2));
     return;
   }
+
+  if (args.attackReport) {
+    const summaryReport = buildAttackVerificationReport(report.findings);
+    console.log(JSON.stringify({ attackReport: summaryReport }, null, 2));
+    return;
+  }
+
 
 
 
