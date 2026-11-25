@@ -1,33 +1,93 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="100%" height="320">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 380" width="100%" height="380">
   <defs>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFF0A8"/>
-      <stop offset="45%" stop-color="#D4AF37"/>
-      <stop offset="100%" stop-color="#8C6512"/>
+    <radialGradient id="coreGlow" cx="22%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#FF6A1A" stop-opacity="0.34"/>
+      <stop offset="45%" stop-color="#D4AF37" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#06080B" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="goldArmor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5B8"/>
+      <stop offset="35%" stop-color="#E5B93C"/>
+      <stop offset="75%" stop-color="#B0811B"/>
+      <stop offset="100%" stop-color="#6E4B07"/>
     </linearGradient>
-    <linearGradient id="emberGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#FF5A1F"/>
-      <stop offset="55%" stop-color="#FFD166"/>
-      <stop offset="100%" stop-color="#FFF3B0"/>
+
+    <linearGradient id="infernoFlame" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B81D13"/>
+      <stop offset="40%" stop-color="#FF5A1F"/>
+      <stop offset="78%" stop-color="#FFB703"/>
+      <stop offset="100%" stop-color="#FFF8CC"/>
     </linearGradient>
+
+    <linearGradient id="cyberBeam" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF5A1F" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#FFD700" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFD700" stop-opacity="0.08"/>
+    </linearGradient>
+
+    <pattern id="digitalGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#D4AF37" stroke-opacity="0.07" stroke-width="1"/>
+      <circle cx="0" cy="0" r="1.2" fill="#FFD700" fill-opacity="0.16"/>
+    </pattern>
   </defs>
 
-  <rect width="1200" height="320" rx="18" fill="#090B0E"/>
-  <rect x="10" y="10" width="1180" height="300" rx="14" fill="none" stroke="url(#goldGrad)" stroke-width="2.5"/>
+  <!-- Base & Digital Grid -->
+  <rect width="1400" height="380" rx="22" fill="#06080B"/>
+  <rect width="1400" height="380" rx="22" fill="url(#digitalGrid)"/>
+  <rect width="1400" height="380" rx="22" fill="url(#coreGlow)"/>
 
-  <!-- Dragon silhouette & flame crest -->
-  <g transform="translate(80, 42)">
-    <path d="M155 32 L128 8 L136 46 L96 28 L114 68 L62 62 L98 94 L42 118 L92 132 L54 172 L112 162 L132 214 L158 166 L208 186 L184 140 L236 122 L184 102 L214 58 L166 76 Z" fill="url(#emberGrad)" opacity="0.92"/>
-    <path d="M148 48 C115 52, 86 78, 84 114 C82 146, 102 174, 132 188 L122 212 L152 194 C178 192, 202 172, 210 144 C216 122, 206 96, 186 80 L196 52 L168 64 C162 56, 155 50, 148 48 Z" fill="#0E1117" stroke="url(#goldGrad)" stroke-width="3.5"/>
-    <polygon points="154,96 174,108 154,120 134,108" fill="#FFD700"/>
-    <circle cx="154" cy="108" r="5" fill="#090B0E"/>
+  <!-- Outer & Inner Golden Frames -->
+  <rect x="12" y="12" width="1376" height="356" rx="17" fill="none" stroke="url(#goldArmor)" stroke-width="2.5"/>
+  <rect x="20" y="20" width="1360" height="340" rx="13" fill="none" stroke="#FFD700" stroke-opacity="0.22" stroke-width="1"/>
+
+  <!-- Corner Brackets -->
+  <path d="M 34 62 L 34 34 L 62 34" fill="none" stroke="#FFD700" stroke-width="3"/>
+  <path d="M 1338 34 L 1366 34 L 1366 62" fill="none" stroke="#FFD700" stroke-width="3"/>
+  <path d="M 34 318 L 34 346 L 62 346" fill="none" stroke="#FFD700" stroke-width="3"/>
+  <path d="M 1338 346 L 1366 346 L 1366 318" fill="none" stroke="#FFD700" stroke-width="3"/>
+
+  <!-- Digital Dragon Emblem (Left) -->
+  <g transform="translate(75, 36)">
+    <!-- Outer Halo Ring -->
+    <circle cx="152" cy="154" r="134" fill="none" stroke="url(#goldArmor)" stroke-width="1.5" stroke-dasharray="10 6" opacity="0.65"/>
+    <circle cx="152" cy="154" r="122" fill="none" stroke="#FF5A1F" stroke-width="1" opacity="0.35"/>
+
+    <!-- Flame Wings & Fire Crest -->
+    <path d="M 152 14
+             L 124 46 L 92 22 L 104 64 L 54 44 L 82 88 L 24 88 L 72 124 L 18 156 L 78 172
+             L 44 218 L 102 208 L 96 258 L 136 226 L 152 276 L 168 226 L 208 258 L 202 208
+             L 260 218 L 226 172 L 286 156 L 232 124 L 280 88 L 222 88 L 250 44 L 200 64
+             L 212 22 L 180 46 Z"
+          fill="url(#infernoFlame)" opacity="0.88"/>
+
+    <!-- Armored Dragon Head & Horns -->
+    <path d="M 152 44
+             L 126 78 L 96 68 L 112 104 L 74 118 L 96 146 L 84 184 L 116 204
+             L 132 238 L 152 216 L 172 238 L 188 204 L 220 184 L 208 146
+             L 230 118 L 192 104 L 208 68 L 178 78 Z"
+          fill="#0B0E14" stroke="url(#goldArmor)" stroke-width="4" stroke-linejoin="round"/>
+
+    <!-- Crown Spine & Scales -->
+    <polygon points="152,54 166,86 152,102 138,86" fill="url(#goldArmor)"/>
+    <polygon points="152,162 172,182 152,204 132,182" fill="#131822" stroke="url(#goldArmor)" stroke-width="2"/>
+
+    <!-- Glowing Dragon Eyes -->
+    <polygon points="108,132 134,126 126,142" fill="#FFF3B0"/>
+    <polygon points="196,132 170,126 178,142" fill="#FFF3B0"/>
+    <circle cx="122" cy="133" r="3" fill="#FF3B00"/>
+    <circle cx="182" cy="133" r="3" fill="#FF3B00"/>
+
+    <!-- Digital Node Accents -->
+    <line x1="286" y1="154" x2="345" y2="154" stroke="url(#cyberBeam)" stroke-width="2"/>
+    <circle cx="345" cy="154" r="4" fill="#FFD700"/>
   </g>
 
-  <!-- Title & Tagline -->
-  <text x="355" y="128" fill="url(#goldGrad)" font-family="monospace, sans-serif" font-size="68" font-weight="800" letter-spacing="10">MANINY</text>
-  <text x="358" y="174" fill="#F5F7FA" font-family="sans-serif" font-size="22" font-weight="600">Multi-Stage Detection, Safe Verification, Controlled Remediation &amp; Rollback</text>
-  <text x="358" y="214" fill="#D4AF37" font-family="monospace, sans-serif" font-size="16">DETECT  -&gt;  VERIFY  -&gt;  SIMULATE  -&gt;  FIX  -&gt;  DEFEND &amp; ROLLBACK</text>
+  <!-- Typography & Pipeline Telemetry (Right) -->
+  <text x="435" y="114" fill="url(#goldArmor)" font-family="monospace, sans-serif" font-size="76" font-weight="900" letter-spacing="12">MANINY</text>
 
-  <line x1="358" y1="238" x2="1120" y2="238" stroke="#D4AF37" stroke-opacity="0.45" stroke-width="1.5"/>
-  <text x="358" y="268" fill="#A1A8B3" font-family="monospace, sans-serif" font-size="15">TypeScript Strict  |  SARIF 2.1.0 &amp; JSON  |  Workspace Sandboxed  |  Auto Rollback</text>
-</svg>
+  <text x="438" y="156" fill="#F8FAFC" font-family="sans-serif" font-size="22" font-weight="600">
+    Autonomous Multi-Stage Security Verification, Remediation &amp; Rollback Engine
+  </text>
+
+

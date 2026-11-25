@@ -1,43 +1,41 @@
 <div align="center">
 
-<img src="./assets/dragon-banner.svg" alt="MANINY Dragon Banner" width="100%" />
+<img src="./assets/dragon-banner.svg" alt="MANINY Digital Dragon Banner" width="100%" />
 
 <br />
 
-[![Runtime](https://img.shields.io/badge/Runtime-TypeScript%20%7C%20Node.js-D4AF37?style=for-the-badge&labelColor=090B0E&color=D4AF37)](./tsconfig.json)
-[![Pipeline](https://img.shields.io/badge/Stages-Detect%20%7C%20Verify%20%7C%20Fix%20%7C%20Review-F5F7FA?style=for-the-badge&labelColor=090B0E&color=273043)](./src/runner.ts)
-[![Reports](https://img.shields.io/badge/Output-JSON%20%7C%20SARIF%202.1.0-FFD700?style=for-the-badge&labelColor=090B0E&color=8C6512)](./src/core/reporter.ts)
-[![Guardrails](https://img.shields.io/badge/Safety-Scope%20Guard%20%7C%20Auto%20Rollback-E5E7EB?style=for-the-badge&labelColor=090B0E&color=1B2230)](./src/stages/reviewer.ts)
-
-> **Dragon Guardrail Principle:** Every automated patch is backed up first, verified after change, and automatically rolled back if incomplete or unsafe.
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript%20Strict-FFD700?style=for-the-badge&labelColor=06080B&color=B0811B)](./tsconfig.json)
+[![Pipeline](https://img.shields.io/badge/Engine-Detect%20%E2%86%92%20Verify%20%E2%86%92%20Sim%20%E2%86%92%20Fix%20%E2%86%92%20Defend-FF5A1F?style=for-the-badge&labelColor=06080B&color=2A1610)](./src/runner.ts)
+[![Reports](https://img.shields.io/badge/Reports-JSON%20%7C%20SARIF%202.1.0-FFF5B8?style=for-the-badge&labelColor=06080B&color=1E2430)](./src/core/reporter.ts)
+[![Safety](https://img.shields.io/badge/Guardrails-Scope%20Locked%20%7C%20Auto%20Rollback-E5E7EB?style=for-the-badge&labelColor=06080B&color=111622)](./src/stages/reviewer.ts)
 
 </div>
 
 ---
 
-## Execution Pipeline
+## Architecture Overview
 
-| Stage | Module | Role |
-| :--- | :--- | :--- |
-| **1. Detector** | `src/stages/detector.ts` | Scans workspace files and queues target URLs while ignoring report artifacts |
-| **2. Safe Verifier** | `src/stages/verifier.ts` | Performs static verification and baseline HTTP header checks |
-| **3. Exposure Checker** | `src/stages/exposure-checker.ts` | Audits `Strict-Transport-Security` (`HSTS`) on authorized targets |
-| **4. Adversarial Sim** | `src/stages/adversarial-sim.ts` | Runs non-destructive reflection probes when `--allow-probes` and `--allow-host` match |
-| **5. Fixer** | `src/stages/fixer.ts` | Enforces policy and workspace path rules, saves backup + `unifiedDiff`, and patches |
-| **6. Defender Reviewer** | `src/stages/reviewer.ts` | Confirms `verified_fixed` or restores backup with status `rolled_back` |
+MANINY coordinates local static analysis, authorized HTTP checks, controlled remediation, and post-patch defensive review under a strict state machine:
+
+- **Detection (`src/stages/detector.ts`):** Scans project files and queues allowed URLs while ignoring `node_modules`, `.git`, build outputs, and MANINY report files.
+- **Verification & Simulation (`src/stages/verifier.ts`, `src/stages/exposure-checker.ts`, `src/stages/adversarial-sim.ts`):** Verifies code patterns statically and checks headers, `HSTS`, and benign reflection on hosts explicitly permitted by `--allow-host` and `--allow-probes`.
+- **Remediation & Rollback (`src/stages/fixer.ts`, `src/stages/reviewer.ts`):** Enforces workspace containment and policy rules, saves backup snapshots and `unifiedDiff`, and automatically restores the backup (`rolled_back`) if review fails.
 
 ---
 
-## Rules & Policy Boundaries
+## Built-In Rules
 
-- **Authorized Scope Only:** Network probes run only when `--allow-probes` is enabled and the host matches `--allow-host`.
-- **Workspace Containment:** File edits stay inside `workspaceRoot` and block sensitive paths (`.env`, `.git`, `node_modules`, `id_rsa`, `credentials`).
-- **Built-In Rules:** `MANINY-CODE-001` (`eval`), `MANINY-CODE-002` (`new Function`), `MANINY-CODE-003` (`exec`/`execSync`), `MANINY-HTTP-001` (`rejectUnauthorized: false`), `MANINY-HTTP-002` (non-local `http://`), and `MANINY-SEC-001` (hardcoded secrets).
+| Rule ID | Category | Severity | Target | Auto-Fix |
+| :--- | :--- | :--- | :--- | :--- |
+| `MANINY-CODE-001` | `code-pattern` | `high` | `eval()` | Yes |
+| `MANINY-CODE-002` | `code-pattern` | `high` | `new Function()` | Yes |
+| `MANINY-CODE-003` | `code-pattern` | `high` | `exec()` / `execSync()` | Manual review |
+| `MANINY-HTTP-001` | `http-hardening` | `medium` | `rejectUnauthorized: false` | Yes |
+| `MANINY-HTTP-002` | `http-hardening` | `medium` | Non-local `http://` | Yes (`https://`) |
+| `MANINY-SEC-001` | `secret-exposure` | `critical` | Hardcoded secret literals | Manual review |
 
 ---
 
-## Build & Run
+## Build & Execution
 
-1. Install dependencies and build: `npm install && npm run build`
-2. Run full pipeline with `JSON` + `SARIF` reports:
-   `node ./dist/cli.js --mode pipeline --workspace ./sample-target --allow-fix --format both --report ./maniny-report`
+Install dependencies and build with `npm install && npm run build`, then run the pipeline via `node ./dist/cli.js --mode pipeline --workspace ./sample-target --allow-fix --format both --report ./maniny-report`.
