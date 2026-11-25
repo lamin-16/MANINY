@@ -120,6 +120,7 @@ import { runAnomalyGuardAuditor } from "./stages/anomaly-guard-auditor.js";
 import { runWebAuthnPasskeyAuditor } from "./stages/webauthn-passkey-auditor.js";
 import { runOidcFederationAuditor } from "./stages/oidc-federation-auditor.js";
 import { runScimProvisioningAuditor } from "./stages/scim-provisioning-auditor.js";
+import { runSessionRevocationAuditor } from "./stages/session-revocation-auditor.js";
 import { runCsrfProtectionAuditor } from "./stages/csrf-protection-auditor.js";
 import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
