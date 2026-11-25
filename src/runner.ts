@@ -51,6 +51,7 @@ import { runOpenRedirectCorsAuditor } from "./stages/open-redirect-cors-auditor.
 import { runJwtTokenAuditor } from "./stages/jwt-token-auditor.js";
 import { runGraphqlSecurityAuditor } from "./stages/graphql-security-auditor.js";
 import { runSearchQueryAuditor } from "./stages/search-query-auditor.js";
+import { runMediaUploadAuditor } from "./stages/media-upload-auditor.js";
 import { runMassAssignmentAuditor } from "./stages/mass-assignment-auditor.js";
 import { runSecretExposureAuditor } from "./stages/secret-exposure-auditor.js";
 import { runAccessControlAuditor } from "./stages/access-control-auditor.js";
