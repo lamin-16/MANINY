@@ -19,6 +19,7 @@ import { runSessionCookieAuditor } from "./stages/session-cookie-auditor.js";
 import { runSerializationAuditor } from "./stages/serialization-auditor.js";
 import { runMessagingAuditor } from "./stages/messaging-auditor.js";
 import { runRegexAuditor } from "./stages/regex-auditor.js";
+import { runObjectPrototypeAuditor } from "./stages/object-prototype-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -76,6 +77,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       serFindings,
       msgFindings,
       rgxFindings,
+      objFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -94,6 +96,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runSerializationAuditor(policy),
       runMessagingAuditor(policy),
       runRegexAuditor(policy),
+      runObjectPrototypeAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -114,6 +117,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...serFindings,
       ...msgFindings,
       ...rgxFindings,
+      ...objFindings,
     ];
   }
 

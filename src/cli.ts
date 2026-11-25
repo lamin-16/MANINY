@@ -120,6 +120,7 @@ function parseArgs(argv: string[]): {
   groupByFile: boolean;
   groupByCategory: boolean;
   groupByStatus: boolean;
+  groupBySeverity: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -153,6 +154,7 @@ function parseArgs(argv: string[]): {
   let groupByFile = false;
   let groupByCategory = false;
   let groupByStatus = false;
+  let groupBySeverity = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -167,7 +169,9 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--group-by-status") {
+    if (arg === "--group-by-severity") {
+      groupBySeverity = true;
+    } else if (arg === "--group-by-severity --group-by-status") {
       groupByStatus = true;
     } else if (arg === "--group-by-status --group-by-category") {
       groupByCategory = true;
@@ -310,6 +314,7 @@ function parseArgs(argv: string[]): {
     groupByFile,
     groupByCategory,
     groupByStatus,
+    groupBySeverity,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -416,7 +421,7 @@ async function main(): Promise<void> {
   }
 
   const audit = args.includeIntegrity ? buildExecutionAudit(report.findings) : undefined;
-  const bySeverity = args.countBySeverity
+  const bySeverity = (args.countBySeverity || args.groupBySeverity)
     ? {
         critical: report.findings.filter((x: Finding) => x.severity === "critical").length,
         high: report.findings.filter((x: Finding) => x.severity === "high").length,
