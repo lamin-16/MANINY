@@ -28,7 +28,7 @@ export function correlateHybridChains(findings: Finding[]): CorrelatedAttackChai
     /^(MANINY-HDR|MANINY-CSP|MANINY-HTTP)/.test(f.ruleId)
   );
   const codeOrProto = findings.filter((f) =>
-    /^(MANINY-CODE|MANINY-OBJ|MANINY-PRP|MANINY-RGX)/.test(f.ruleId)
+    /^(MANINY-CODE|MANINY-OBJ|MANINY-PRP|MANINY-RGX|MANINY-TMP)/.test(f.ruleId)
   );
   const exposureOrAuth = findings.filter((f) =>
     /^(MANINY-SEC|MANINY-AUTH|MANINY-INJ|MANINY-SQL|MANINY-XSS)/.test(f.ruleId)
