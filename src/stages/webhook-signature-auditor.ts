@@ -19,19 +19,19 @@ interface WebhookSignatureRule {
 const WEBHOOK_SIGNATURE_RULES: WebhookSignatureRule[] = [
   {
     id: "MANINY-WHK-001",
-    severity: "medium",
+    severity: "high",
     category: "code-pattern",
-    title: "Interpolated template literal in webhook signature or payload header",
-    regex: /\b(webhook|x-hub-signature|x-signature|signature)\b[^\r\n]*`[^`]*\$\{[^}]+\}[^`]*`/i,
-    description: "Compute webhook signatures using keyed HMAC over raw request bodies and avoid interpolating untrusted values into signature headers.",
+    title: "Webhook handler accesses request body/payload without visible signature check on line",
+    regex: /\b(handleWebhook|webhookHandler|onWebhook)\b[^\r\n;{]*\b(req\.body|rawBody|payload)\b[^\r\n;{]*(?![^\r\n]*(verifySignature|signature|hmac|timingSafeEqual))/i,
+    description: "Verify webhook HMAC or provider signatures using constant-time comparison before processing incoming webhook payloads.",
   },
   {
     id: "MANINY-WHK-002",
-    severity: "high",
+    severity: "medium",
     category: "code-pattern",
-    title: "Webhook handler reference without explicit signature verification on line",
-    regex: /\b(handleWebhook|webhookHandler|onWebhook)\b[^\r\n]*(=>|function|\bfetch\b|\bpost\b)(?![^\r\n]*(verifySignature|hmac|timingSafeEqual|signature))/i,
-    description: "Verify cryptographic webhook signatures with constant-time comparison and enforce replay protection before processing events.",
+    title: "Webhook signature verification explicitly disabled or skipped on line",
+    regex: /\b(skipSignatureVerify|verifyWebhookSignature|verifyWebhook)\b[^\r\n;,)]*[:=]\s*false/i,
+    description: "Keep webhook signature verification enabled to prevent spoofed events or unauthorized state changes.",
   },
 ];
 
