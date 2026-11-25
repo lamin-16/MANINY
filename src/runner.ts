@@ -45,6 +45,7 @@ import { runGraphqlSecurityAuditor } from "./stages/graphql-security-auditor.js"
 import { runSsrfNetworkAuditor } from "./stages/ssrf-network-auditor.js";
 import { runCspHeadersAuditor } from "./stages/csp-headers-auditor.js";
 import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";
+import { runCommandExecAuditor } from "./stages/command-exec-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -129,6 +130,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       rtlFindings,
       cspSecHdrFindings,
       pthTravFindings,
+      cmdExecFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -174,6 +176,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runRateLimitAuditor(policy),
       runCspHeadersAuditor(policy),
       runPathTraversalAuditor(policy),
+      runCommandExecAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -221,6 +224,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...rtlFindings,
       ...cspSecHdrFindings,
       ...pthTravFindings,
+      ...cmdExecFindings,
     ];
   }
 

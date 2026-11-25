@@ -152,6 +152,7 @@ function parseArgs(argv: string[]): {
   sortByFile: boolean;
   sortBySeverity: boolean;
   countByCategory: boolean;
+  countByRule: boolean;
   failOn?: Severity;
   reportBase?: string;
   reportFormat: ReportFormat;
@@ -211,6 +212,7 @@ function parseArgs(argv: string[]): {
   let sortByFile = false;
   let sortBySeverity = false;
   let countByCategory = false;
+  let countByRule = false;
   let failOn: Severity | undefined;
   let reportBase: string | undefined;
   let reportFormat: ReportFormat = "json";
@@ -380,6 +382,7 @@ function parseArgs(argv: string[]): {
     sortByFile,
     sortBySeverity,
     countByCategory,
+    countByRule,
     ...(excludeFile ? { excludeFile } : {}),
     ...(excludeFilePrefix ? { excludeFilePrefix } : {}),
     ...(excludeFileSuffix ? { excludeFileSuffix } : {}),
@@ -410,7 +413,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-line <num> --exclude-file-suffix <sfx> --exclude-file-prefix <pfx> --exclude-file <substr> --count-by-category --sort-by-severity --sort-by-file --sort-by-line --only-status <status> --only-file <path> --only-category <cat> --only-rule <id> --max-severity <sev> --min-severity <sev> --no-target-url --has-target-url --no-evidence --has-evidence --line <num> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-line <num> --exclude-file-suffix <sfx> --exclude-file-prefix <pfx> --exclude-file <substr> --count-by-rule --count-by-category --sort-by-severity --sort-by-file --sort-by-line --only-status <status> --only-file <path> --only-category <cat> --only-rule <id> --max-severity <sev> --min-severity <sev> --no-target-url --has-target-url --no-evidence --has-evidence --line <num> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -508,6 +511,15 @@ async function main(): Promise<void> {
     const ef = args.excludeFile.toLowerCase();
     report.findings = report.findings.filter((f: Finding) => !String(f.filePath ?? f.targetUrl ?? "").toLowerCase().includes(ef));
     recomputeSummary(report);
+  }
+
+  if (args.countByRule) {
+    const counts: Record<string, number> = {};
+    for (const f of report.findings) {
+      counts[f.ruleId] = (counts[f.ruleId] ?? 0) + 1;
+    }
+    console.log(JSON.stringify({ countByRule: counts }, null, 2));
+    return;
   }
 
   if (args.countByCategory) {
