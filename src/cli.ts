@@ -115,6 +115,7 @@ function parseArgs(argv: string[]): {
   categoryFilter?: string;
   summaryOnly: boolean;
   countBySeverity: boolean;
+  statusFilter?: string;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -143,6 +144,7 @@ function parseArgs(argv: string[]): {
   let categoryFilter: string | undefined;
   let summaryOnly = false;
   let countBySeverity = false;
+  let statusFilter: string | undefined;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -157,7 +159,10 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--count-by-severity") {
+    if (arg === "--status" && next) {
+      statusFilter = next.trim();
+      i++;
+    } else if (arg === "--status <st> --count-by-severity") {
       countBySeverity = true;
     } else if (arg === "--count-by-severity --summary-only") {
       summaryOnly = true;
@@ -284,6 +289,7 @@ function parseArgs(argv: string[]): {
     ...(categoryFilter ? { categoryFilter } : {}),
     summaryOnly,
     countBySeverity,
+    ...(statusFilter ? { statusFilter } : {}),
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -364,6 +370,12 @@ async function main(): Promise<void> {
     skipWorkspaceScan: args.urlOnly,
     ...(args.reportBase ? { reportBasePath: args.reportBase } : {}),
   });
+
+  if (args.statusFilter) {
+    const sf = args.statusFilter.toLowerCase();
+    report.findings = report.findings.filter((f: Finding) => f.status.toLowerCase() === sf);
+    recomputeSummary(report);
+  }
 
   if (args.categoryFilter) {
     const cf = args.categoryFilter.toLowerCase();
