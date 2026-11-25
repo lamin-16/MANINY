@@ -1,0 +1,21 @@
+{
+  "name": "maniny",
+  "version": "0.2.0",
+  "description": "MANINY: Extensible detection, safe offensive verification, remediation, and defensive review platform",
+  "type": "module",
+  "bin": {
+    "maniny": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node ./dist/cli.js",
+    "dev": "tsc -p tsconfig.json && node ./dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

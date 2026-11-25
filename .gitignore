@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.log
+maniny-report.json
+maniny-report.sarif
