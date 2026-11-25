@@ -43,6 +43,7 @@ import { runOpenRedirectCorsAuditor } from "./stages/open-redirect-cors-auditor.
 import { runJwtTokenAuditor } from "./stages/jwt-token-auditor.js";
 import { runGraphqlSecurityAuditor } from "./stages/graphql-security-auditor.js";
 import { runSsrfNetworkAuditor } from "./stages/ssrf-network-auditor.js";
+import { runCspHeadersAuditor } from "./stages/csp-headers-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -125,6 +126,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       gqlSecFindings,
       ssrNetFindings,
       rtlFindings,
+      cspSecHdrFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -168,6 +170,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runGraphqlSecurityAuditor(policy),
       runSsrfNetworkAuditor(policy),
       runRateLimitAuditor(policy),
+      runCspHeadersAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -213,6 +216,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...gqlSecFindings,
       ...ssrNetFindings,
       ...rtlFindings,
+      ...cspSecHdrFindings,
     ];
   }
 

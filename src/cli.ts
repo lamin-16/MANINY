@@ -150,6 +150,7 @@ function parseArgs(argv: string[]): {
   onlyStatus?: string;
   sortByLine: boolean;
   sortByFile: boolean;
+  sortBySeverity: boolean;
   failOn?: Severity;
   reportBase?: string;
   reportFormat: ReportFormat;
@@ -207,6 +208,7 @@ function parseArgs(argv: string[]): {
   let onlyStatus: string | undefined;
   let sortByLine = false;
   let sortByFile = false;
+  let sortBySeverity = false;
   let failOn: Severity | undefined;
   let reportBase: string | undefined;
   let reportFormat: ReportFormat = "json";
@@ -374,6 +376,7 @@ function parseArgs(argv: string[]): {
     ...(onlyStatus ? { onlyStatus } : {}),
     sortByLine,
     sortByFile,
+    sortBySeverity,
     ...(excludeFile ? { excludeFile } : {}),
     ...(excludeFilePrefix ? { excludeFilePrefix } : {}),
     ...(excludeFileSuffix ? { excludeFileSuffix } : {}),
@@ -404,7 +407,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-line <num> --exclude-file-suffix <sfx> --exclude-file-prefix <pfx> --exclude-file <substr> --sort-by-file --sort-by-line --only-status <status> --only-file <path> --only-category <cat> --only-rule <id> --max-severity <sev> --min-severity <sev> --no-target-url --has-target-url --no-evidence --has-evidence --line <num> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-line <num> --exclude-file-suffix <sfx> --exclude-file-prefix <pfx> --exclude-file <substr> --sort-by-severity --sort-by-file --sort-by-line --only-status <status> --only-file <path> --only-category <cat> --only-rule <id> --max-severity <sev> --min-severity <sev> --no-target-url --has-target-url --no-evidence --has-evidence --line <num> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -502,6 +505,11 @@ async function main(): Promise<void> {
     const ef = args.excludeFile.toLowerCase();
     report.findings = report.findings.filter((f: Finding) => !String(f.filePath ?? f.targetUrl ?? "").toLowerCase().includes(ef));
     recomputeSummary(report);
+  }
+
+  if (args.sortBySeverity) {
+    const rankMap = SEVERITY_RANK as Record<string, number>;
+    report.findings = [...report.findings].sort((a: Finding, b: Finding) => (rankMap[b.severity.toLowerCase()] ?? 0) - (rankMap[a.severity.toLowerCase()] ?? 0));
   }
 
   if (args.sortByFile) {
