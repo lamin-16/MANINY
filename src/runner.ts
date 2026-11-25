@@ -49,6 +49,7 @@ import { runCryptoWeaknessAuditor } from "./stages/crypto-weakness-auditor.js";
 import { runLogInjectionAuditor } from "./stages/log-injection-auditor.js";
 import { runEnvConfigAuditor } from "./stages/env-config-auditor.js";
 import { runSubprocessSecurityAuditor } from "./stages/subprocess-security-auditor.js";
+import { runRegexSecurityAuditor } from "./stages/regex-security-auditor.js";
 import { runSsrfNetworkAuditor } from "./stages/ssrf-network-auditor.js";
 import { runCspHeadersAuditor } from "./stages/csp-headers-auditor.js";
 import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";

@@ -151,6 +151,7 @@ function parseArgs(argv: string[]): {
   topSeverityFiles: boolean;
   topCategoryFiles: boolean;
   topStatusFiles: boolean;
+  topRuleSeverities: boolean;
   statusFilter?: string;
   groupByRule: boolean;
   groupByFile: boolean;
@@ -232,6 +233,7 @@ function parseArgs(argv: string[]): {
   let topSeverityFiles = false;
   let topCategoryFiles = false;
   let topStatusFiles = false;
+  let topRuleSeverities = false;
   let statusFilter: string | undefined;
   let groupByRule = false;
   let groupByFile = false;
@@ -279,7 +281,7 @@ function parseArgs(argv: string[]): {
     } else if (arg === "--status" && next) {
       statusFilter = next.trim();
       i++;
-    } else if (arg === "--group-by-rule --status <st> --top-status-files --top-category-files --top-severity-files --top-rule-files --top-statuses --top-categories --top-severities --top-files --top-rules --summary-stats --count-by-category-status --count-by-rule-status --count-by-rule-severity --count-by-status-file --count-by-category-file --count-by-status-severity --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
+    } else if (arg === "--group-by-rule --status <st> --top-rule-severities --top-status-files --top-category-files --top-severity-files --top-rule-files --top-statuses --top-categories --top-severities --top-files --top-rules --summary-stats --count-by-category-status --count-by-rule-status --count-by-rule-severity --count-by-status-file --count-by-category-file --count-by-status-severity --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
       countBySeverity = true;
     } else if (arg === "--count-by-severity --summary-only") {
       summaryOnly = true;
@@ -453,6 +455,7 @@ function parseArgs(argv: string[]): {
     topSeverityFiles,
     topCategoryFiles,
     topStatusFiles,
+    topRuleSeverities,
     ...(statusFilter ? { statusFilter } : {}),
     groupByRule,
     groupByFile,
