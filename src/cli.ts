@@ -109,6 +109,7 @@ function parseArgs(argv: string[]): {
   stats: boolean;
   showVersion: boolean;
   showHelp: boolean;
+  quiet: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -131,6 +132,7 @@ function parseArgs(argv: string[]): {
   let stats = false;
   let showVersion = false;
   let showHelp = false;
+  let quiet = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -145,7 +147,9 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--help" || arg === "-h") {
+    if (arg === "--quiet" || arg === "-q") {
+      quiet = true;
+    } else if (arg === "--help" || arg === "-h") {
       showHelp = true;
     } else if (arg === "--version" || arg === "-v") {
       showVersion = true;
@@ -250,6 +254,7 @@ function parseArgs(argv: string[]): {
     stats,
     showVersion,
     showHelp,
+    quiet,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -266,7 +271,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --quiet|-q --help|-h");
     return;
   }
 

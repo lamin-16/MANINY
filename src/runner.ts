@@ -8,6 +8,7 @@ import { runBehavioralAuditor } from "./stages/behavioral-auditor.js";
 import { runLockfileAuditor } from "./stages/lockfile-auditor.js";
 import { runPermissionAuditor } from "./stages/permission-auditor.js";
 import { runCryptoAuditor } from "./stages/crypto-auditor.js";
+import { runProcessAuditor } from "./stages/process-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -47,7 +48,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
   let findings = await runDetector(policy, targetUrls, { skipWorkspaceScan });
 
   if (!skipWorkspaceScan) {
-    const [depFindings, envFindings, behFindings, lockFindings, permFindings, cryFindings] =
+    const [depFindings, envFindings, behFindings, lockFindings, permFindings, cryFindings, prcFindings] =
       await Promise.all([
         runDependencyAuditor(policy),
         runEnvAuditor(policy),
@@ -55,6 +56,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
         runLockfileAuditor(policy),
         runPermissionAuditor(policy),
         runCryptoAuditor(policy),
+        runProcessAuditor(policy),
       ]);
     findings = [
       ...findings,
@@ -64,6 +66,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...lockFindings,
       ...permFindings,
       ...cryFindings,
+      ...prcFindings,
     ];
   }
 
