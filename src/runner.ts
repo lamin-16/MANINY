@@ -67,6 +67,7 @@ import { runLdapInjectionAuditor } from "./stages/ldap-injection-auditor.js";
 import { runNosqlInjectionAuditor } from "./stages/nosql-injection-auditor.js";
 import { runTemplateInjectionAuditor } from "./stages/template-injection-auditor.js";
 import { runWebsocketSecurityAuditor } from "./stages/websocket-security-auditor.js";
+import { runRaceConditionAuditor } from "./stages/race-condition-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
