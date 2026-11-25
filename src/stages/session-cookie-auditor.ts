@@ -22,16 +22,16 @@ const SESSION_COOKIE_RULES: SessionCookieRule[] = [
     severity: "medium",
     category: "code-pattern",
     title: "Cookie or session configuration lacks visible httpOnly, sameSite, or secure flag on line",
-    regex: /\b(res\.cookie|setCookie|expressSession|cookieOptions)\s*\([^\r\n)]*(?![^\r\n]*(httpOnly|sameSite|secure))/i,
-    description: "Set secure cookie flags (httpOnly, sameSite, and secure in production) on session and authentication cookies.",
+    regex: /\b(setCookie|cookieOptions|sessionConfig)\b[^\r\n;{)]*(?![^\r\n]*(httpOnly|sameSite|secure))/i,
+    description: "Set httpOnly, sameSite, and secure attributes on session and authentication cookies to reduce XSS and CSRF risks.",
   },
   {
     id: "MANINY-SES-002",
     severity: "high",
     category: "code-pattern",
-    title: "Session secret uses hardcoded literal or interpolated template expression",
-    regex: /\bsession\s*\([^\r\n)]*\bsecret\s*:\s*(['"][^'"]{1,32}['"]|`[^`]*\$\{[^}]+\}[^`]*`)/i,
-    description: "Load session signing secrets from a dedicated runtime secret store or environment variable without hardcoded literals or interpolation.",
+    title: "Cookie security flag explicitly weakened with httpOnly false or insecure setting",
+    regex: /\b(httpOnly\s*[:=]\s*false|sameSite\s*[:=]\s*['"]?none['"]?)\b[^\r\n;,}]*(?![^\r\n]*secure\s*[:=]\s*true)/i,
+    description: "Avoid disabling httpOnly on session cookies or setting SameSite=None without Secure enabled.",
   },
 ];
 
