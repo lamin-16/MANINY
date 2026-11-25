@@ -114,6 +114,7 @@ function parseArgs(argv: string[]): {
   ruleFilter?: string;
   categoryFilter?: string;
   summaryOnly: boolean;
+  countBySeverity: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -141,6 +142,7 @@ function parseArgs(argv: string[]): {
   let ruleFilter: string | undefined;
   let categoryFilter: string | undefined;
   let summaryOnly = false;
+  let countBySeverity = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -155,7 +157,9 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--summary-only") {
+    if (arg === "--count-by-severity") {
+      countBySeverity = true;
+    } else if (arg === "--count-by-severity --summary-only") {
       summaryOnly = true;
     } else if (arg === "--category" && next) {
       categoryFilter = next.trim();
@@ -279,6 +283,7 @@ function parseArgs(argv: string[]): {
     ...(ruleFilter ? { ruleFilter } : {}),
     ...(categoryFilter ? { categoryFilter } : {}),
     summaryOnly,
+    countBySeverity,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -379,6 +384,16 @@ async function main(): Promise<void> {
   }
 
   const audit = args.includeIntegrity ? buildExecutionAudit(report.findings) : undefined;
+  const bySeverity = args.countBySeverity
+    ? {
+        critical: report.findings.filter((x: Finding) => x.severity === "critical").length,
+        high: report.findings.filter((x: Finding) => x.severity === "high").length,
+        medium: report.findings.filter((x: Finding) => x.severity === "medium").length,
+        low: report.findings.filter((x: Finding) => x.severity === "low").length,
+        info: report.findings.filter((x: Finding) => x.severity === "info").length,
+      }
+    : undefined;
+
   const complianceSummary = args.compliance
     ? buildComplianceSummary(report, Boolean(audit))
     : undefined;
@@ -391,6 +406,7 @@ async function main(): Promise<void> {
           tool: report.tool,
           mode: report.mode,
           summary: report.summary,
+          ...(bySeverity ? { bySeverity } : {}),
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
           ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
@@ -428,6 +444,7 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           ...report,
+          ...(bySeverity ? { bySeverity } : {}),
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { audit } : {}),
           ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
