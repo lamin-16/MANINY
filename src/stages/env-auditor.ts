@@ -55,6 +55,10 @@ function makeEnvFindingId(ruleId: string, fileRel: string, line: number): string
   return `F-${hash}`;
 }
 
+function isEnvRuleDefLine(lineText: string): boolean {
+  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
+}
+
 export async function runEnvAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
 
@@ -80,7 +84,7 @@ export async function runEnvAuditor(policy: ManinyPolicy): Promise<Finding[]> {
       }
 
       for (const rule of ENV_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isEnvRuleDefLine(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeEnvFindingId(rule.id, relFile, lineNum),
