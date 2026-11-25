@@ -14,12 +14,31 @@
 
 ---
 
-## Pipeline Architecture
+## What Is MANINY?
 
-- **Detector (`src/stages/detector.ts`):** Scans workspace files and queues allowed URLs while skipping `node_modules`, `.git`, build folders, and MANINY report files.
-- **Safe Verifier & Exposure (`src/stages/verifier.ts`, `src/stages/exposure-checker.ts`):** Performs static pattern verification and checks security headers and `HSTS` on authorized targets.
-- **Adversarial Simulation (`src/stages/adversarial-sim.ts`):** Runs benign reflection checks only when `--allow-probes` is set and the host matches `--allow-host`.
-- **Fixer & Defender Reviewer (`src/stages/fixer.ts`, `src/stages/reviewer.ts`):** Enforces workspace containment and policy guards, stores backup content + `unifiedDiff`, and automatically restores the backup (`rolled_back`) if review fails.
+**MANINY** is an autonomous multi-stage security verification, controlled remediation, and defensive rollback engine written in strict TypeScript. Instead of blindly modifying source files or running unsafe probes, MANINY enforces a deterministic state machine with workspace sandboxing, backup snapshots, SHA-256 audit trails, and optional multi-agent AI advisory.
+
+---
+
+## How The Pipeline Works (Step-by-Step)
+
+1. **Stage 1 — Detection (`src/stages/detector.ts`):**
+   - Recursively scans files inside `--workspace` while automatically skipping `.git`, `node_modules`, `dist`, and `maniny-report*` artifacts.
+   - Matches line-level rules and collects target URLs into the inspection queue.
+2. **Stage 2 — Safe Verification & Exposure (`src/stages/verifier.ts`, `src/stages/exposure-checker.ts`):**
+   - Confirms static code vulnerabilities (`verified_exploitable`).
+   - When `--allow-probes` and `--allow-host <host>` are explicitly provided, inspects baseline HTTP security headers (`Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Strict-Transport-Security`, and wildcard `CORS`).
+3. **Stage 3 — Adversarial Simulation (`src/stages/adversarial-sim.ts`):**
+   - Executes strictly benign reflection probes on authorized `--allow-host` targets and checks whether HTML angle brackets are properly encoded before flagging `MANINY-ADV-REFLECT-001`.
+4. **Stage 4 — Controlled Remediation (`src/stages/fixer.ts`):**
+   - Runs **only** when `--allow-fix` is passed.
+   - Blocks sensitive paths (`.env`, `.git`, `node_modules`, `id_rsa`, `credentials`, and report files), saves `backupContent` + `unifiedDiff`, and applies targeted patches.
+5. **Stage 5 — Defender Review & Auto-Rollback (`src/stages/reviewer.ts`):**
+   - Re-verifies every patched file to confirm the vulnerable pattern is gone and the file remains intact.
+   - Marks successful patches as `verified_fixed` or automatically restores `backupContent` (`rolled_back`) if verification fails.
+6. **Stage 6 — Integrity Audit & Multi-Agent Advisory (`src/core/audit-trail.ts`, `src/core/agents.ts`):**
+   - Generates a canonical `SHA-256` execution digest (`--integrity`).
+   - Optionally queries configured AI agents (`OpenAI`, `Claude`, `DeepSeek`, `Gemini`, or custom OpenAI-compatible endpoints) for defensive remediation guidance (`--agents`).
 
 ---
 
@@ -31,17 +50,26 @@
 
 </div>
 
-| Rule ID | Category | Severity | Target | Auto-Fix |
+| Rule ID | Category | Severity | Target Pattern | Auto-Fix |
 | :--- | :--- | :--- | :--- | :--- |
-| `MANINY-CODE-001` | `code-pattern` | `high` | `eval()` | Yes |
-| `MANINY-CODE-002` | `code-pattern` | `high` | `new Function()` | Yes |
+| `MANINY-CODE-001` | `code-pattern` | `high` | `eval(...)` | Yes |
+| `MANINY-CODE-002` | `code-pattern` | `high` | `new Function(...)` | Yes |
 | `MANINY-CODE-003` | `code-pattern` | `high` | `exec()` / `execSync()` | Manual review |
-| `MANINY-HTTP-001` | `http-hardening` | `medium` | `rejectUnauthorized: false` | Yes |
-| `MANINY-HTTP-002` | `http-hardening` | `medium` | Non-local `http://` | Yes (`https://`) |
-| `MANINY-SEC-001` | `secret-exposure` | `critical` | Hardcoded secret literals | Manual review |
+| `MANINY-CODE-004` | `code-pattern` | `medium` | `innerHTML =` / `outerHTML =` | Yes (`textContent =`) |
+| `MANINY-CODE-005` | `code-pattern` | `high` | `document.write(...)` | Manual review |
+| `MANINY-CODE-006` | `code-pattern` | `high` | `dangerouslySetInnerHTML` | Manual review |
+| `MANINY-HTTP-001` | `http-hardening` | `medium` | `rejectUnauthorized: false` | Yes (`true`) |
+| `MANINY-HTTP-002` | `http-hardening` | `medium` | Non-local `http://` URLs | Yes (`https://`) |
+| `MANINY-SEC-001` | `secret-exposure` | `critical` | Hardcoded API keys / tokens | Manual review |
+| `MANINY-SEC-002` | `secret-exposure` | `medium` | `Math.random()` in token/secret context | Manual review |
 
 ---
 
-## Build & Run
+## Installation & Build
 
-Build with `npm install && npm run build`, then run `node ./dist/cli.js --mode pipeline --workspace ./sample-target --allow-fix --format both --report ./maniny-report`.
+```bash
+git clone https://github.com/lamin-16/MANINY.git
+cd MANINY
+npm install
+npm run build
+
