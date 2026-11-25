@@ -21,17 +21,17 @@ const LDAP_INJECTION_RULES: LdapInjectionRule[] = [
     id: "MANINY-LDP-001",
     severity: "high",
     category: "code-pattern",
-    title: "Interpolated template literal in structured query or LDAP filter string",
-    regex: /\b(ldap|searchFilter|distinguishedName|xpath)\b[^\r\n]*`[^`]*\$\{[^}]+\}[^`]*`/i,
-    description: "Avoid interpolating raw inputs into structured query or directory filters; escape special characters and use parameterized filters.",
+    title: "Interpolated template or request input passed to LDAP search/filter without visible escape",
+    regex: /\b(ldapFilter|SearchFilter|ldap\.search)\s*\([^\r\n)]*(`[^`]*\$\{[^}]+\}[^`]*`|\b(req\.query|req\.body|req\.params)\b)[^\r\n)]*(?![^\r\n]*(escapeFilter|escapeDn|sanitize))/i,
+    description: "Escape special LDAP filter and DN characters and validate user inputs before constructing directory queries.",
   },
   {
     id: "MANINY-LDP-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Dynamic query filter construction via string concatenation",
-    regex: /\b(buildFilter|ldapSearch|xpathQuery)\s*\([^\r\n)]*(\$\{|`|\+)/i,
-    description: "Validate and escape filter attributes before constructing directory or structured query expressions.",
+    title: "LDAP filter attribute interpolated directly inside template expression",
+    regex: /`[^`]*\(\s*(uid|cn|mail|memberOf)\s*=\s*\$\{[^}]+\}[^`]*`[^\r\n;]*(?![^\r\n]*(escapeFilter|escapeDn))/i,
+    description: "Avoid embedding unescaped template variables directly inside LDAP search filter expressions.",
   },
 ];
 
