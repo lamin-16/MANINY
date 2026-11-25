@@ -8,6 +8,18 @@ export interface CorrelatedAttackChain {
   stagesInvolved: string[];
 }
 
+function uniqueById(items: Finding[]): Finding[] {
+  const seen = new Set<string>();
+  const out: Finding[] = [];
+  for (const item of items) {
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      out.push(item);
+    }
+  }
+  return out;
+}
+
 function collectStages(matched: Finding[]): string[] {
   const stages = new Set<string>(["detect"]);
   for (const item of matched) {
@@ -35,7 +47,7 @@ export function correlateHybridChains(findings: Finding[]): CorrelatedAttackChai
   );
 
   if (ssrfOrRedirect.length > 0 && authOrHeaders.length > 0) {
-    const matched = [...ssrfOrRedirect.slice(0, 3), ...authOrHeaders.slice(0, 3)];
+    const matched = uniqueById([...ssrfOrRedirect.slice(0, 3), ...authOrHeaders.slice(0, 3)]);
     const hasVerified = matched.some((m) => m.status === "verified_exploitable");
     chains.push({
       chainId: "CHAIN-HYBRID-BOUNDARY-01",
@@ -47,7 +59,7 @@ export function correlateHybridChains(findings: Finding[]): CorrelatedAttackChai
   }
 
   if (codeOrProto.length > 0) {
-    const matched = codeOrProto.slice(0, 4);
+    const matched = uniqueById(codeOrProto).slice(0, 4);
     const hasVerified = matched.some((m) => m.status === "verified_exploitable");
     chains.push({
       chainId: "CHAIN-HYBRID-EXEC-STATE-02",
@@ -59,7 +71,7 @@ export function correlateHybridChains(findings: Finding[]): CorrelatedAttackChai
   }
 
   if (exposureOrAuth.length > 0) {
-    const matched = exposureOrAuth.slice(0, 4);
+    const matched = uniqueById(exposureOrAuth).slice(0, 4);
     const hasVerified = matched.some((m) => m.status === "verified_exploitable");
     chains.push({
       chainId: "CHAIN-HYBRID-EXPOSURE-AUTH-03",
