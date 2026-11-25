@@ -34,6 +34,7 @@ import { runGraphqlWebhookAuditor } from "./stages/graphql-webhook-auditor.js";
 import { runOauthApiKeyAuditor } from "./stages/oauth-api-key-auditor.js";
 import { runSsrfDnsAuditor } from "./stages/ssrf-dns-auditor.js";
 import { runRateLimitAuditor } from "./stages/rate-limit-auditor.js";
+import { runXxeParserAuditor } from "./stages/xxe-parser-auditor.js";
 import { runCspSecurityHeadersAuditor } from "./stages/csp-security-headers-auditor.js";
 import { runSubprocessExecAuditor } from "./stages/subprocess-exec-auditor.js";
 import { runDynamicEvalAuditor } from "./stages/dynamic-eval-auditor.js";
