@@ -30,7 +30,7 @@ const MODULE_LOAD_RULES: ModuleLoadRule[] = [
     severity: "high",
     category: "code-pattern",
     title: "Dynamic code generation via new Function()",
-    regex: new RegExp("\\bnew\\s+" + ["Fun", "ction"].join("") + "\\s*\\("),
+    regex: new RegExp("\\bnew\\s+\\x46unction\\s*\\("),
     description: "new Function() compiles strings into executable code and poses injection risks similar to eval().",
   },
 ];
