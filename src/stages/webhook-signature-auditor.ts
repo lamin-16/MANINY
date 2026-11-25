@@ -21,17 +21,17 @@ const WEBHOOK_SIGNATURE_RULES: WebhookSignatureRule[] = [
     id: "MANINY-WHK-001",
     severity: "high",
     category: "code-pattern",
-    title: "Webhook handler accesses request body/payload without visible signature check on line",
-    regex: /\b(handleWebhook|webhookHandler|onWebhook)\b[^\r\n;{]*\b(req\.body|rawBody|payload)\b[^\r\n;{]*(?![^\r\n]*(verifySignature|signature|hmac|timingSafeEqual))/i,
-    description: "Verify webhook HMAC or provider signatures using constant-time comparison before processing incoming webhook payloads.",
+    title: "Webhook handler processes payload without visible signature or HMAC verification on line",
+    regex: /\b(handleWebhook|onWebhook|webhookHandler)\b[^\r\n;{)]*(?![^\r\n]*(signature|hmac|verify|timingSafeEqual))/i,
+    description: "Verify cryptographic webhook signatures and reject unauthenticated or tampered payloads.",
   },
   {
     id: "MANINY-WHK-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Webhook signature verification explicitly disabled or skipped on line",
-    regex: /\b(skipSignatureVerify|verifyWebhookSignature|verifyWebhook)\b[^\r\n;,)]*[:=]\s*false/i,
-    description: "Keep webhook signature verification enabled to prevent spoofed events or unauthorized state changes.",
+    title: "Webhook timestamp replay window check missing on line",
+    regex: /\b(verifyWebhook|checkSignature)\s*\([^\r\n)]*(?![^\r\n]*(timestamp|tolerance|replay|age))/i,
+    description: "Validate webhook event timestamps within a bounded tolerance window to mitigate replay attacks.",
   },
 ];
 
