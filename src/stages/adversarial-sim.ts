@@ -5,16 +5,22 @@ export interface AdversarialSimOptions {
   requestTimeoutMs?: number;
 }
 
-const SAFE_TEST_PROBES: Array<{ name: string; queryParam: string; queryValue: string }> = [
+const SAFE_TEST_PROBES: Array<{
+  name: string;
+  queryParam: string;
+  queryValue: string;
+  requireAngleBracketCheck?: boolean;
+}> = [
   {
     name: "benign-reflection-probe",
     queryParam: "maniny_probe",
     queryValue: "maniny_safe_check_123",
   },
   {
-    name: "benign-path-probe",
-    queryParam: "view",
-    queryValue: "default",
+    name: "benign-tag-encoding-probe",
+    queryParam: "maniny_q",
+    queryValue: "maniny_tag_<test>",
+    requireAngleBracketCheck: true,
   },
 ];
 
@@ -30,7 +36,12 @@ function buildProbeUrl(baseUrl: string, param: string, value: string): string | 
 
 async function runSingleSafeProbe(
   targetUrl: string,
-  probe: { name: string; queryParam: string; queryValue: string },
+  probe: {
+    name: string;
+    queryParam: string;
+    queryValue: string;
+    requireAngleBracketCheck?: boolean;
+  },
   timeoutMs: number
 ): Promise<Finding | null> {
   const probeUrl = buildProbeUrl(targetUrl, probe.queryParam, probe.queryValue);
@@ -49,20 +60,28 @@ async function runSingleSafeProbe(
     });
 
     const bodyText = await response.text();
-    const reflectsUnencodedMarker = bodyText.includes(probe.queryValue);
+    const rawReflected = bodyText.includes(probe.queryValue);
+    const hasEncodedBrackets =
+      bodyText.includes("&lt;test&gt;") || bodyText.includes("&#60;test&#62;");
+
+    const confirmed = probe.requireAngleBracketCheck
+      ? rawReflected && !hasEncodedBrackets
+      : rawReflected;
 
     const evidence: EvidenceRecord = {
       stage: "verify",
       probeType: "safe-http-check",
       target: probeUrl,
-      confirmed: reflectsUnencodedMarker,
-      message: reflectsUnencodedMarker
+      confirmed,
+      message: confirmed
         ? `Probe [${probe.name}] observed unencoded marker reflection in HTTP ${response.status} response.`
-        : `Probe [${probe.name}] completed with HTTP ${response.status}; no raw marker reflection observed.`,
+        : hasEncodedBrackets
+          ? `Probe [${probe.name}] saw HTML-encoded output in HTTP ${response.status} response (not flagged as raw reflection).`
+          : `Probe [${probe.name}] completed with HTTP ${response.status}; no raw marker reflection observed.`,
       timestamp: new Date().toISOString(),
     };
 
-    if (!reflectsUnencodedMarker) {
+    if (!confirmed) {
       return null;
     }
 
