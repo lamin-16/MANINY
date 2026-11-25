@@ -55,6 +55,7 @@ import { runLdapInjectionAuditor } from "./stages/ldap-injection-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
+import { runUploadSafetyAuditor } from "./stages/upload-safety-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -149,6 +150,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       srfDynFindings,
       jwtAuthFindings,
       whkSigFindings,
+      uplSafFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -204,6 +206,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runSsrfDynamicAuditor(policy),
       runJwtAuthAuditor(policy),
       runWebhookSignatureAuditor(policy),
+      runUploadSafetyAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -261,6 +264,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...srfDynFindings,
       ...jwtAuthFindings,
       ...whkSigFindings,
+      ...uplSafFindings,
     ];
   }
 
