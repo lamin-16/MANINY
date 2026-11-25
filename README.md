@@ -4,6 +4,11 @@
 
 # <span style="font-size:48px;font-weight:900;letter-spacing:4px;"><span style="color:#FFD700;">M</span><span style="color:#00FF7F;">A</span><span style="color:#FF7A00;">N</span><span style="color:#FFD700;">I</span><span style="color:#00FF7F;">N</span><span style="color:#FF7A00;">Y</span> <span style="color:#00FF7F;">D</span><span style="color:#FFD700;">I</span><span style="color:#00FF7F;">G</span><span style="color:#FF7A00;">I</span><span style="color:#FFD700;">T</span><span style="color:#00FF7F;">A</span><span style="color:#FF7A00;">L</span></span>
 
+[![MANINY DIGITAL](https://img.shields.io/badge/MANINY-DIGITAL-FFD700?style=for-the-badge&labelColor=111111&color=00FF7F)](#)
+[![TypeScript](https://img.shields.io/badge/TYPESCRIPT-5-FFD700?style=for-the-badge&labelColor=111111&color=FFD700)](#)
+[![Node.js](https://img.shields.io/badge/NODE.JS-%3E%3D20-00FF7F?style=for-the-badge&labelColor=111111&color=00FF7F)](#)
+[![MIT License](https://img.shields.io/badge/LICENSE-MIT-FF7A00?style=for-the-badge&labelColor=111111&color=FF7A00)](./LICENSE)
+
 ### <span style="color:#FFD700;">Offensive Security, Vulnerability Discovery & Real Exploit Verification</span>
 <span style="color:#FFD700;">● Bright Gold (#FFD700)</span> · <span style="color:#00FF7F;">● Spring Green (#00FF7F)</span> · <span style="color:#FF7A00;">● Orange (#FF7A00)</span>
 
@@ -91,26 +96,4 @@ npm test
 
 ## <span style="color:#FF7A00;">📜 License</span>
 
-```text
-MIT License
-
-Copyright (c) 2026 MANINY DIGITAL (lamin-16/MANINY)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+See [LICENSE](./LICENSE) (MIT License, Copyright © 2026 MANINY DIGITAL).
