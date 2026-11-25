@@ -102,6 +102,7 @@ import { runUploadSafetyAuditor } from "./stages/upload-safety-auditor.js";
 import { runOpenRedirectAuditor } from "./stages/open-redirect-auditor.js";
 import { runSsrfGuardAuditor } from "./stages/ssrf-guard-auditor.js";
 import { runSensitiveDataAuditor } from "./stages/sensitive-data-auditor.js";
+import { runTokenEntropyAuditor } from "./stages/token-entropy-auditor.js";
 import { runCorsPolicyAuditor } from "./stages/cors-policy-auditor.js";
 import { runCookieSecurityAuditor } from "./stages/cookie-security-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
