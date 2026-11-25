@@ -48,6 +48,7 @@ import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";
 import { runCommandExecAuditor } from "./stages/command-exec-auditor.js";
 import { runDeserializationAuditor } from "./stages/deserialization-auditor.js";
 import { runPrototypePollutionAuditor } from "./stages/prototype-pollution-auditor.js";
+import { runSqlInjectionAuditor } from "./stages/sql-injection-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -135,6 +136,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       cmdExecFindings,
       dsrFindings,
       prtFindings,
+      sqlInjFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -183,6 +185,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runCommandExecAuditor(policy),
       runDeserializationAuditor(policy),
       runPrototypePollutionAuditor(policy),
+      runSqlInjectionAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -233,6 +236,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...cmdExecFindings,
       ...dsrFindings,
       ...prtFindings,
+      ...sqlInjFindings,
     ];
   }
 
