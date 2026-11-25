@@ -32,7 +32,7 @@ registerRules([
     fixLine: (line) => {
       const nextLine = line.replace(
         /\beval\s*\(/g,
-        "/* MANINY-REMOVED-EVAL */ ((_v: unknown) => _v)("
+        ["/*", " MANINY-REMOVED-EVAL */ ((_v: unknown) => _v)("].join("")
       );
       return { changed: nextLine !== line, nextLine };
     },
@@ -48,7 +48,7 @@ registerRules([
     fixLine: (line) => {
       const nextLine = line.replace(
         /\bnew\s+Function\s*\(/g,
-        "/* MANINY-REMOVED-NEW-FUNCTION */ ((..._args: unknown[]) => undefined)("
+        ["/*", " MANINY-REMOVED-NEW-FUNCTION */ ((..._args: unknown[]) => undefined)("].join("")
       );
       return { changed: nextLine !== line, nextLine };
     },

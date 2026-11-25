@@ -23,14 +23,20 @@ export function makeStageFindingId(ruleId: string, relFile: string, line: number
 }
 
 async function collectWorkspaceFiles(dir: string, root: string): Promise<string[]> {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const safeRoot = path.resolve(root);
+  const safeDir = resolveSafeWorkspacePath(safeRoot, path.relative(safeRoot, dir) || ".");
+  if (!safeDir) return [];
+  const entries = await fs.readdir(safeDir, { withFileTypes: true });
   const results: string[] = [];
   for (const entry of entries) {
+    if (entry.name.includes("..") || path.isAbsolute(entry.name)) continue;
+    const candidate = resolveSafeWorkspacePath(safeRoot, path.relative(safeRoot, path.join(safeDir, entry.name)));
+    if (!candidate) continue;
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) results.push(...(await collectWorkspaceFiles(path.join(dir, entry.name), root)));
+      if (!SKIP_DIRS.has(entry.name)) results.push(...(await collectWorkspaceFiles(candidate, safeRoot)));
     } else if (entry.isFile() && SCAN_EXTS.has(path.extname(entry.name).toLowerCase())) {
-      const rel = path.relative(root, path.join(dir, entry.name));
-      if (rel) results.push(rel);
+      const rel = path.relative(safeRoot, candidate);
+      if (rel && !rel.startsWith("..")) results.push(rel);
     }
   }
   return results;
