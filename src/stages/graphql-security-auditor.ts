@@ -19,40 +19,33 @@ interface GraphqlSecurityRule {
 const GRAPHQL_SECURITY_RULES: GraphqlSecurityRule[] = [
   {
     id: "MANINY-GQL-001",
-    severity: "medium",
+    severity: "high",
     category: "code-pattern",
-    title: "Explicit GraphQL introspection or playground enabled in configuration",
-    regex: /\b(introspection|playground)\s*:\s*true\b/i,
-    description: "Disable GraphQL introspection and interactive playgrounds in production environments unless explicitly required.",
+    title: "Interpolated template expression inside GraphQL query or gql tag",
+    regex: /\b(gql|graphql)\b[^\r\n]*`[^`]*\$\{[^}]+\}[^`]*`/i,
+    description: "Use strongly typed GraphQL variables instead of interpolating dynamic values into query or mutation strings.",
   },
   {
     id: "MANINY-GQL-002",
-    severity: "low",
+    severity: "medium",
     category: "code-pattern",
-    title: "Interpolated template literal in webhook dispatch or verification context",
-    regex: /\b(webhook|dispatchWebhook|verifyWebhook|sendWebhook)\b[^\r\n]*`[^`]*\$\{/,
-    description: "Validate webhook endpoints and sign payloads using strong HMAC secrets rather than interpolating untrusted strings.",
+    title: "GraphQL server or handler setup without visible depth or query complexity guard on line",
+    regex: /\b(graphqlHTTP|createYoga|ApolloServer)\s*\([^\r\n)]*(?![^\r\n]*(depthLimit|maxDepth|validationRules|complexity))/i,
+    description: "Enforce query depth limits, complexity analysis, and introspection controls on GraphQL endpoints.",
   },
 ];
 
 function makeGqlFindingId(ruleId: string, relFile: string, line: number): string {
-  const hash = crypto
-    .createHash("sha256")
-    .update(`${ruleId}:${relFile}:${line}`)
-    .digest("hex")
-    .slice(0, 10);
+  const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
   return `F-${hash}`;
 }
 
 async function collectFiles(dir: string, root: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const results: string[] = [];
-
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) {
-        results.push(...(await collectFiles(path.join(dir, entry.name), root)));
-      }
+      if (!SKIP_DIRS.has(entry.name)) results.push(...(await collectFiles(path.join(dir, entry.name), root)));
     } else if (entry.isFile() && SCAN_EXTS.has(path.extname(entry.name).toLowerCase())) {
       const rel = path.relative(root, path.join(dir, entry.name));
       if (rel) results.push(rel);
@@ -64,26 +57,16 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
 export async function runGraphqlSecurityAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
-
   for (const relFile of files) {
     const safePath = resolveSafeWorkspacePath(policy.workspaceRoot, relFile);
     if (!safePath) continue;
-
     let content: string;
-    try {
-      content = await fs.readFile(safePath, "utf8");
-    } catch {
-      continue;
-    }
-
+    try { content = await fs.readFile(safePath, "utf8"); } catch { continue; }
     const lines = content.split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
       const lineText = lines[i] ?? "";
       const trimmed = lineText.trim();
-      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) {
-        continue;
-      }
-
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of GRAPHQL_SECURITY_RULES) {
         if (rule.regex.test(lineText)) {
           const lineNum = i + 1;
@@ -103,6 +86,5 @@ export async function runGraphqlSecurityAuditor(policy: ManinyPolicy): Promise<F
       }
     }
   }
-
   return findings;
 }
