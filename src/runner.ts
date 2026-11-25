@@ -63,6 +63,7 @@ import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";
 import { runSsrfRequestAuditor } from "./stages/ssrf-request-auditor.js";
 import { runCommandExecAuditor } from "./stages/command-exec-auditor.js";
 import { runDeserializationAuditor } from "./stages/deserialization-auditor.js";
+import { runSecurityHeadersAuditor } from "./stages/security-headers-auditor.js";
 import { runPrototypePollutionAuditor } from "./stages/prototype-pollution-auditor.js";
 import { runSqlInjectionAuditor } from "./stages/sql-injection-auditor.js";
 import { runXssDomAuditor } from "./stages/xss-dom-auditor.js";
