@@ -1,3 +1,4 @@
+import { buildEliteAttackMatrix } from "./core/elite-attack-engine.js";
 import { assessExploitabilityChains, buildAttackVerificationReport } from "./core/exploit-chain-verifier.js";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -272,12 +273,14 @@ function parseArgs(argv: string[]): {
   topDistinctVerifiedRank: boolean;
   topExploitabilityRank: boolean;
   attackReport: boolean;
+  eliteMatrix: boolean;
   reportFormat: ReportFormat;
 } {
   let mode: RunMode = "pipeline";
   let workspace = process.cwd();
   const allowHosts: string[] = [];
   const targetUrls: string[] = [];
+  let eliteMatrix = false;
   let attackReport = false;
   let topExploitabilityRank = false;
   let topDistinctVerifiedRank = false;
@@ -453,7 +456,9 @@ function parseArgs(argv: string[]): {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
-    if (arg === "--attack-report") {
+    if (arg === "--elite-matrix") {
+      eliteMatrix = true;
+    } else if (arg === "--attack-report") {
       attackReport = true;
     } else if (arg === "--top-exploitability-rank") {
       topExploitabilityRank = true;
@@ -627,6 +632,7 @@ function parseArgs(argv: string[]): {
   }
 
   return {
+    eliteMatrix,
     attackReport,
     topExploitabilityRank,
     topDistinctVerifiedRank,
@@ -1980,6 +1986,13 @@ mode: args.mode,
     console.log(JSON.stringify({ attackReport: summaryReport }, null, 2));
     return;
   }
+
+  if (args.eliteMatrix) {
+    const matrix = buildEliteAttackMatrix(report.findings);
+    console.log(JSON.stringify({ eliteMatrix: matrix }, null, 2));
+    return;
+  }
+
 
 
 
