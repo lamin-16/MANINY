@@ -9,17 +9,14 @@ export interface AuthSessionProbeOptions {
 const EV_KEYS = ["stage","probeType","target","confirmed","message","timestamp"];
 const AUTH_BOUNDARY_PATHS = ["/api/admin", "/api/users", "/api/account", "/api/me"];
 
-function makeEvidenceRecord(keys: string[], summary: string, location: string): EvidenceRecord[] {
+function makeEvidenceRecord(_keys: string[], summary: string, location: string): EvidenceRecord[] {
   const rec: Record<string, unknown> = {};
-  for (const key of keys) {
-    if (/file|path|url|target|location/i.test(key)) {
-      rec[key] = location;
-    } else if (/line|col|offset|status|code|port/i.test(key)) {
-      rec[key] = 1;
-    } else {
-      rec[key] = summary;
-    }
-  }
+  rec.stage = summary;
+  rec.probeType = summary;
+  rec.target = location;
+  rec.confirmed = false;
+  rec.message = summary;
+  rec.timestamp = new Date().toISOString();
   return [rec as unknown as EvidenceRecord];
 }
 

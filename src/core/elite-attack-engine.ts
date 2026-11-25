@@ -35,15 +35,12 @@ const DEBUG_LEAK_PATTERNS = [
 
 function makeEliteEvidence(summary: string, location: string): EvidenceRecord[] {
   const rec: Record<string, unknown> = {};
-  for (const key of EV_KEYS) {
-    if (/file|path|url|target|location/i.test(key)) {
-      rec[key] = location;
-    } else if (/line|col|offset|status|code|port/i.test(key)) {
-      rec[key] = 1;
-    } else {
-      rec[key] = summary;
-    }
-  }
+  rec.stage = summary;
+  rec.probeType = summary;
+  rec.target = location;
+  rec.confirmed = false;
+  rec.message = summary;
+  rec.timestamp = new Date().toISOString();
   return [rec as unknown as EvidenceRecord];
 }
 
@@ -125,9 +122,10 @@ export async function runEliteAttackVerification(options: EliteAttackOptions): P
           .join(",")
           .toUpperCase();
 
-        const exposedRisky = RISKY_METHODS.filter((m) =>
-          new RegExp(`\\b${m}\\b`).test(allowHeader)
+        const allowedTokens = new Set(
+          allowHeader.split(/[^A-Z0-9_-]+/).filter(Boolean)
         );
+        const exposedRisky = RISKY_METHODS.filter((m) => allowedTokens.has(m));
         if (exposedRisky.length > 0) {
           findings.push({
             id: `MANINY-ELITE-METHOD-001-${seq++}`,
