@@ -7,6 +7,7 @@ const BASELINE_SECURITY_HEADERS = [
   "x-content-type-options",
   "x-frame-options",
   "referrer-policy",
+  "content-security-policy",
 ] as const;
 
 async function probeAllowedHttpHeaders(
@@ -22,16 +23,31 @@ async function probeAllowedHttpHeaders(
       (headerName) => !response.headers.get(headerName)
     );
 
+    const wildcardCors = response.headers.get("access-control-allow-origin") === "*";
+    const missingHsts =
+      targetUrl.startsWith("https://") && !response.headers.get("strict-transport-security");
+
+    const issues: string[] = [];
     if (missing.length > 0) {
+      issues.push(`missing headers [${missing.join(", ")}]`);
+    }
+    if (missingHsts) {
+      issues.push("missing strict-transport-security on HTTPS");
+    }
+    if (wildcardCors) {
+      issues.push("wildcard Access-Control-Allow-Origin (*)");
+    }
+
+    if (issues.length > 0) {
       return {
         confirmed: true,
-        message: `HTTP ${response.status}: missing baseline security headers [${missing.join(", ")}].`,
+        message: `HTTP ${response.status}: ${issues.join("; ")}.`,
       };
     }
 
     return {
       confirmed: false,
-      message: `HTTP ${response.status}: baseline security headers present.`,
+      message: `HTTP ${response.status}: baseline HTTP security headers and transport policy verified.`,
     };
   } catch (err) {
     return {
@@ -115,13 +131,13 @@ export async function runSafeVerifier(
           updated = transitionStatus(
             updated,
             "verified_exploitable",
-            "Missing baseline security headers confirmed on allowed host"
+            "HTTP hardening gap confirmed on allowed host"
           );
         } else if (!probe.confirmed && updated.status === "detected") {
           updated = transitionStatus(
             updated,
             "needs_review",
-            "Baseline security headers present on allowed host"
+            "HTTP hardening posture verified on allowed host"
           );
         }
       }

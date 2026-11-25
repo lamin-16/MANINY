@@ -2,6 +2,7 @@ import path from "node:path";
 import { ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
 import { listRules } from "./core/registry.js";
 import { AgentProviderId, discoverConfiguredAgents, runMultiAgentAdvisory } from "./core/agents.js";
+import { buildExecutionAudit } from "./core/audit-trail.js";
 import { executeManiny } from "./runner.js";
 
 const SEVERITY_RANK: Record<Severity, number> = {
@@ -34,6 +35,8 @@ function parseArgs(argv: string[]): {
   allowFix: boolean;
   listRules: boolean;
   agentsRequested: boolean;
+  agentsStatusOnly: boolean;
+  includeIntegrity: boolean;
   agentProviders: AgentProviderId[];
   minSeverity?: Severity;
   reportBase?: string;
@@ -47,6 +50,8 @@ function parseArgs(argv: string[]): {
   let allowFix = false;
   let shouldListRules = false;
   let agentsRequested = false;
+  let agentsStatusOnly = false;
+  let includeIntegrity = false;
   const agentProviders: AgentProviderId[] = [];
   let minSeverity: Severity | undefined;
   let reportBase: string | undefined;
@@ -58,6 +63,10 @@ function parseArgs(argv: string[]): {
 
     if (arg === "--list-rules") {
       shouldListRules = true;
+    } else if (arg === "--agents-status") {
+      agentsStatusOnly = true;
+    } else if (arg === "--integrity") {
+      includeIntegrity = true;
     } else if (arg === "--agents") {
       agentsRequested = true;
       if (next && !next.startsWith("--")) {
@@ -130,6 +139,8 @@ function parseArgs(argv: string[]): {
     allowFix,
     listRules: shouldListRules,
     agentsRequested,
+    agentsStatusOnly,
+    includeIntegrity,
     agentProviders,
     reportFormat,
     ...(minSeverity ? { minSeverity } : {}),
@@ -149,6 +160,26 @@ async function main(): Promise<void> {
       title: r.title,
     }));
     console.log(JSON.stringify({ total: rules.length, rules }, null, 2));
+    return;
+  }
+
+  if (args.agentsStatusOnly) {
+    const active = discoverConfiguredAgents(args.agentProviders);
+    console.log(
+      JSON.stringify(
+        {
+          configuredCount: active.length,
+          agents: active.map((a) => ({
+            provider: a.provider,
+            model: a.model,
+            baseUrl: a.baseUrl ?? "default",
+            ready: true,
+          })),
+        },
+        null,
+        2
+      )
+    );
     return;
   }
 
@@ -175,6 +206,8 @@ async function main(): Promise<void> {
     recomputeSummary(report);
   }
 
+  const audit = args.includeIntegrity ? buildExecutionAudit(report.findings) : undefined;
+
   if (args.agentsRequested) {
     const configured = discoverConfiguredAgents(args.agentProviders);
     const insights = await runMultiAgentAdvisory(configured, report.findings);
@@ -182,6 +215,7 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           ...report,
+          ...(audit ? { audit } : {}),
           agents: {
             configuredCount: configured.length,
             providers: configured.map((c) => ({ provider: c.provider, model: c.model })),
@@ -195,7 +229,16 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(JSON.stringify(report, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        ...report,
+        ...(audit ? { audit } : {}),
+      },
+      null,
+      2
+    )
+  );
 }
 
 main().catch((err) => {
