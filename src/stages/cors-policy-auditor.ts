@@ -21,17 +21,17 @@ const CORS_POLICY_RULES: CorsPolicyRule[] = [
     id: "MANINY-CRS-001",
     severity: "medium",
     category: "code-pattern",
-    title: "Wildcard '*' Access-Control-Allow-Origin configured in source code",
-    regex: /Access-Control-Allow-Origin[^\r\n]*\*/i,
-    description: "Restrict Access-Control-Allow-Origin to trusted explicit origins instead of a broad '*' wildcard when exposing sensitive endpoints.",
+    title: "Wildcard '*' origin allowed in CORS configuration or header",
+    regex: /\b(Access-Control-Allow-Origin|origin)\b[^\r\n;,)]*[:=]\s*['"]\*['"]/i,
+    description: "Restrict allowed CORS origins to explicit trusted domains instead of using a wildcard '*' on sensitive endpoints.",
   },
   {
     id: "MANINY-CRS-002",
     severity: "high",
     category: "code-pattern",
-    title: "Dynamic or interpolated origin reflected in CORS header",
-    regex: /Access-Control-Allow-Origin[^\r\n]*(\$\{|`|\borigin\b)/i,
-    description: "Validate incoming request origins against a strict allowlist before reflecting them into Access-Control-Allow-Origin headers.",
+    title: "Request Origin header reflected directly without visible allowlist check on line",
+    regex: /\b(origin|Access-Control-Allow-Origin)\b[^\r\n;,)]*\breq\.headers\.origin\b[^\r\n;,)]*(?![^\r\n]*(allowedOrigins|allowlist|includes|indexOf))/i,
+    description: "Validate incoming Origin headers against an explicit allowlist before reflecting them in CORS response headers.",
   },
 ];
 
