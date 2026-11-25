@@ -61,6 +61,10 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isCspHdrRuleLine(lineText: string): boolean {
+  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
+}
+
 export async function runCspHeadersAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -85,7 +89,7 @@ export async function runCspHeadersAuditor(policy: ManinyPolicy): Promise<Findin
       }
 
       for (const rule of CSP_HEADERS_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isCspHdrRuleLine(lineText) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makeCspFindingId(rule.id, relFile, lineNum),
