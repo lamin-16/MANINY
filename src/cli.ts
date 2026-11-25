@@ -1084,26 +1084,28 @@ mode: args.mode,
       }
     : undefined;
 
+  const countBy = (items: Finding[], pickKey: (item: Finding) => string): Record<string, number> => {
+    const counts = new Map<string, number>();
+    for (const item of items) {
+      const rawKey = pickKey(item) || "unknown";
+      const safeKey = rawKey === "__proto__" || rawKey === "prototype" || rawKey === "constructor"
+        ? `_${rawKey}_`
+        : rawKey;
+      counts.set(safeKey, (counts.get(safeKey) ?? 0) + 1);
+    }
+    return Object.fromEntries(counts);
+  };
+
   const byRule = args.groupByRule
-    ? report.findings.reduce<Record<string, number>>((acc, f: Finding) => {
-        acc[f.ruleId] = (acc[f.ruleId] ?? 0) + 1;
-        return acc;
-      }, {})
+    ? countBy(report.findings, (f: Finding) => f.ruleId)
     : undefined;
 
   const byFile = args.groupByFile
-    ? report.findings.reduce<Record<string, number>>((acc, f: Finding) => {
-        const key = f.filePath ?? f.targetUrl ?? "unknown";
-        acc[key] = (acc[key] ?? 0) + 1;
-        return acc;
-      }, {})
+    ? countBy(report.findings, (f: Finding) => f.filePath ?? f.targetUrl ?? "unknown")
     : undefined;
 
   const byCategory = args.groupByCategory
-    ? report.findings.reduce<Record<string, number>>((acc, f: Finding) => {
-        acc[f.category] = (acc[f.category] ?? 0) + 1;
-        return acc;
-      }, {})
+    ? countBy(report.findings, (f: Finding) => f.category)
     : undefined;
 
   const byStatus = args.groupByStatus

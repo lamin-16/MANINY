@@ -128,6 +128,9 @@ export async function runFixer(
     }
 
     const nextLines = [...lines];
+    if (!Number.isInteger(idx) || idx < 0 || idx >= nextLines.length) {
+      throw new Error(`Target line index out of bounds: ${idx}`);
+    }
     nextLines[idx] = fixResult.nextLine;
     const updatedContent = nextLines.join("\n");
 
