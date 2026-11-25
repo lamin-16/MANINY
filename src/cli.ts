@@ -256,12 +256,14 @@ function parseArgs(argv: string[]): {
   topDistinctDeviceTrustRank: boolean;
   topDistinctStepUpRank: boolean;
   topDistinctApikeyRank: boolean;
+  topDistinctSupplyRank: boolean;
   reportFormat: ReportFormat;
 } {
   let mode: RunMode = "pipeline";
   let workspace = process.cwd();
   const allowHosts: string[] = [];
   const targetUrls: string[] = [];
+  let topDistinctSupplyRank = false;
   let topDistinctApikeyRank = false;
   let topDistinctStepUpRank = false;
   let topDistinctDeviceTrustRank = false;
@@ -422,7 +424,9 @@ function parseArgs(argv: string[]): {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
-    if (arg === "--top-distinct-apikey-rank") {
+    if (arg === "--top-distinct-supply-rank") {
+      topDistinctSupplyRank = true;
+    } else if (arg === "--top-distinct-apikey-rank") {
       topDistinctApikeyRank = true;
     } else if (arg === "--top-distinct-step-up-rank") {
       topDistinctStepUpRank = true;
@@ -566,6 +570,7 @@ function parseArgs(argv: string[]): {
   }
 
   return {
+    topDistinctSupplyRank,
     topDistinctAnomalyRank,
     topDistinctPasskeyRank,
     topDistinctOidcRank,
