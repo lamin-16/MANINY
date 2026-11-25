@@ -55,6 +55,7 @@ import { runXssSinkAuditor } from "./stages/xss-sink-auditor.js";
 import { runSsrfNetworkAuditor } from "./stages/ssrf-network-auditor.js";
 import { runCspHeadersAuditor } from "./stages/csp-headers-auditor.js";
 import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";
+import { runSsrfRequestAuditor } from "./stages/ssrf-request-auditor.js";
 import { runCommandExecAuditor } from "./stages/command-exec-auditor.js";
 import { runDeserializationAuditor } from "./stages/deserialization-auditor.js";
 import { runPrototypePollutionAuditor } from "./stages/prototype-pollution-auditor.js";
