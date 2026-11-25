@@ -76,6 +76,7 @@ import { runContainerSecurityAuditor } from "./stages/container-security-auditor
 import { runIacPermissionsAuditor } from "./stages/iac-permissions-auditor.js";
 import { runAuthzPrivilegeAuditor } from "./stages/authz-privilege-auditor.js";
 import { runAuditLoggingAuditor } from "./stages/audit-logging-auditor.js";
+import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
