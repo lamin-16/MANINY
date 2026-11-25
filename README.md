@@ -23,7 +23,13 @@
 
 ---
 
-## Built-In Rules
+## Rules & Rollback Matrix
+
+<div align="center">
+
+![MANINY Rule and State Matrix](./assets/rules-matrix.svg)
+
+</div>
 
 | Rule ID | Category | Severity | Target | Auto-Fix |
 | :--- | :--- | :--- | :--- | :--- |
