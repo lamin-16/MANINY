@@ -106,6 +106,7 @@ import { runFileTransferAuditor } from "./stages/file-transfer-auditor.js";
 import { runMfaSessionAuditor } from "./stages/mfa-session-auditor.js";
 import { runBillingPaymentAuditor } from "./stages/billing-payment-auditor.js";
 import { runTempFileWebhookAuditor } from "./stages/temp-file-webhook-auditor.js";
+import { runNotificationQueueAuditor } from "./stages/notification-queue-auditor.js";
 import { runCsrfProtectionAuditor } from "./stages/csrf-protection-auditor.js";
 import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
