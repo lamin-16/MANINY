@@ -51,6 +51,7 @@ import { runEnvConfigAuditor } from "./stages/env-config-auditor.js";
 import { runSubprocessSecurityAuditor } from "./stages/subprocess-security-auditor.js";
 import { runRegexSecurityAuditor } from "./stages/regex-security-auditor.js";
 import { runSqlQueryAuditor } from "./stages/sql-query-auditor.js";
+import { runXssSinkAuditor } from "./stages/xss-sink-auditor.js";
 import { runSsrfNetworkAuditor } from "./stages/ssrf-network-auditor.js";
 import { runCspHeadersAuditor } from "./stages/csp-headers-auditor.js";
 import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";
