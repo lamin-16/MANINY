@@ -1,6 +1,7 @@
 import path from "node:path";
 import { ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
 import { listRules } from "./core/registry.js";
+import { AgentProviderId, discoverConfiguredAgents, runMultiAgentAdvisory } from "./core/agents.js";
 import { executeManiny } from "./runner.js";
 
 const SEVERITY_RANK: Record<Severity, number> = {
@@ -32,6 +33,8 @@ function parseArgs(argv: string[]): {
   allowProbes: boolean;
   allowFix: boolean;
   listRules: boolean;
+  agentsRequested: boolean;
+  agentProviders: AgentProviderId[];
   minSeverity?: Severity;
   reportBase?: string;
   reportFormat: ReportFormat;
@@ -43,6 +46,8 @@ function parseArgs(argv: string[]): {
   let allowProbes = false;
   let allowFix = false;
   let shouldListRules = false;
+  let agentsRequested = false;
+  const agentProviders: AgentProviderId[] = [];
   let minSeverity: Severity | undefined;
   let reportBase: string | undefined;
   let reportFormat: ReportFormat = "json";
@@ -53,6 +58,23 @@ function parseArgs(argv: string[]): {
 
     if (arg === "--list-rules") {
       shouldListRules = true;
+    } else if (arg === "--agents") {
+      agentsRequested = true;
+      if (next && !next.startsWith("--")) {
+        for (const raw of next.split(",")) {
+          const p = raw.trim().toLowerCase();
+          if (
+            p === "openai" ||
+            p === "claude" ||
+            p === "deepseek" ||
+            p === "gemini" ||
+            p === "custom"
+          ) {
+            agentProviders.push(p);
+          }
+        }
+        i++;
+      }
     } else if (arg === "--severity" && next) {
       if (
         next === "info" ||
@@ -107,6 +129,8 @@ function parseArgs(argv: string[]): {
     allowProbes,
     allowFix,
     listRules: shouldListRules,
+    agentsRequested,
+    agentProviders,
     reportFormat,
     ...(minSeverity ? { minSeverity } : {}),
     ...(reportBase ? { reportBase } : {}),
@@ -149,6 +173,26 @@ async function main(): Promise<void> {
     const threshold = SEVERITY_RANK[args.minSeverity];
     report.findings = report.findings.filter((f) => SEVERITY_RANK[f.severity] >= threshold);
     recomputeSummary(report);
+  }
+
+  if (args.agentsRequested) {
+    const configured = discoverConfiguredAgents(args.agentProviders);
+    const insights = await runMultiAgentAdvisory(configured, report.findings);
+    console.log(
+      JSON.stringify(
+        {
+          ...report,
+          agents: {
+            configuredCount: configured.length,
+            providers: configured.map((c) => ({ provider: c.provider, model: c.model })),
+            insights,
+          },
+        },
+        null,
+        2
+      )
+    );
+    return;
   }
 
   console.log(JSON.stringify(report, null, 2));
