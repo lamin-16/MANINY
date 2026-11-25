@@ -21,17 +21,17 @@ const PATH_TRAVERSAL_RULES: PathTraversalRule[] = [
     id: "MANINY-PTH-001",
     severity: "high",
     category: "code-pattern",
-    title: "Interpolated template literal or traversal sequence in filesystem path operation",
-    regex: /\b(path\.(join|resolve)|fs\.(readFile|writeFile|createReadStream|createWriteStream))\s*\([^\r\n]*(`[^`]*\$\{|\.\.\/)/,
-    description: "Resolve and validate filesystem paths against a strict root boundary before performing read or write operations.",
+    title: "Interpolated or dynamic path passed to file system operation without safe resolver",
+    regex: /\b(readFile|writeFile|appendFile|unlink|createReadStream|createWriteStream)\s*\(\s*(`[^`]*\$\{[^}]+\}[^`]*`|[A-Za-z_$][A-Za-z0-9_$.]*)[^\r\n)]*(?![^\r\n]*(resolveSafeWorkspacePath|basename|startsWith))/i,
+    description: "Resolve and confine file paths within an allowed base directory before performing file read, write, or deletion operations.",
   },
   {
     id: "MANINY-PTH-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Dynamic file path read/write without path containment helper on line",
-    regex: /\bfs\.(readFile|writeFile|unlink|rm)\s*\(\s*`[^`]*\$\{[^}]+\}[^`]*`(?![^\r\n]*(resolveSafeWorkspacePath|basename|startsWith))/i,
-    description: "Sanitize file names and verify that resolved target paths remain inside the allowed workspace directory.",
+    title: "Request input passed directly into path.join or path.resolve",
+    regex: /\bpath\.(join|resolve)\s*\([^\r\n)]*\b(req\.params|req\.query|req\.body)\b/i,
+    description: "Validate and canonicalize request path segments to block '../' traversal sequences before joining paths.",
   },
 ];
 
