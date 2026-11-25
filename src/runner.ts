@@ -123,6 +123,7 @@ import { runScimProvisioningAuditor } from "./stages/scim-provisioning-auditor.j
 import { runSessionRevocationAuditor } from "./stages/session-revocation-auditor.js";
 import { runDeviceTrustAuditor } from "./stages/device-trust-auditor.js";
 import { runStepUpAuthAuditor } from "./stages/step-up-auth-auditor.js";
+import { runApiKeyLifecycleAuditor } from "./stages/api-key-lifecycle-auditor.js";
 import { runCsrfProtectionAuditor } from "./stages/csrf-protection-auditor.js";
 import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
