@@ -268,12 +268,14 @@ function parseArgs(argv: string[]): {
   topDistinctBindRank: boolean;
   topDistinctXssRank: boolean;
   topDistinctAuditLogRank: boolean;
+  topDistinctVerifiedRank: boolean;
   reportFormat: ReportFormat;
 } {
   let mode: RunMode = "pipeline";
   let workspace = process.cwd();
   const allowHosts: string[] = [];
   const targetUrls: string[] = [];
+  let topDistinctVerifiedRank = false;
   let topDistinctAuditLogRank = false;
   let topDistinctXssRank = false;
   let topDistinctBindRank = false;
@@ -446,7 +448,9 @@ function parseArgs(argv: string[]): {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
-    if (arg === "--top-distinct-audit-log-rank") {
+    if (arg === "--top-distinct-verified-rank") {
+      topDistinctVerifiedRank = true;
+    } else if (arg === "--top-distinct-audit-log-rank") {
       topDistinctAuditLogRank = true;
     } else if (arg === "--top-distinct-xss-rank") {
       topDistinctXssRank = true;
@@ -614,6 +618,7 @@ function parseArgs(argv: string[]): {
   }
 
   return {
+    topDistinctVerifiedRank,
     topDistinctAuditLogRank,
     topDistinctXssRank,
     topDistinctBindRank,
@@ -1908,6 +1913,51 @@ mode: args.mode,
     );
     return;
   }
+
+  if (args.topDistinctVerifiedRank) {
+    const map = new Map();
+    for (const f of report.findings) {
+      const key = `${f.filePath ?? "unknown"}@${f.ruleId}@${f.severity}@${f.category}@${f.status}`;
+      const entry = map.get(key) ?? { files: new Set(), rules: new Set(), severities: new Set(), categories: new Set(), total: 0 };
+      entry.files.add(f.filePath ?? "unknown");
+      entry.rules.add(f.ruleId);
+      entry.severities.add(f.severity);
+      entry.categories.add(f.category);
+      entry.total += 1;
+      map.set(key, entry);
+    }
+    const ranked = [...map.entries()].sort(
+      (a, b) =>
+        b[1].files.size - a[1].files.size ||
+        b[1].rules.size - a[1].rules.size ||
+        b[1].severities.size - a[1].severities.size ||
+        b[1].categories.size - a[1].categories.size ||
+        b[1].total - a[1].total ||
+        a[0].localeCompare(b[0])
+    );
+    console.log(
+      JSON.stringify(
+        {
+          topDistinctVerifiedRank: Object.fromEntries(
+            ranked.map(([k, v]) => [
+              k,
+              {
+                distinctFiles: v.files.size,
+                distinctRules: v.rules.size,
+                distinctSeverities: v.severities.size,
+                distinctCategories: v.categories.size,
+                totalFindings: v.total,
+              },
+            ])
+          ),
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
+
 
 
 
