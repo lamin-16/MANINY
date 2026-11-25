@@ -74,6 +74,7 @@ import { runHardcodedCredentialsAuditor } from "./stages/hardcoded-credentials-a
 import { runDependencySupplyChainAuditor } from "./stages/dependency-supply-chain-auditor.js";
 import { runContainerSecurityAuditor } from "./stages/container-security-auditor.js";
 import { runIacPermissionsAuditor } from "./stages/iac-permissions-auditor.js";
+import { runAuthzPrivilegeAuditor } from "./stages/authz-privilege-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
