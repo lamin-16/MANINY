@@ -18,41 +18,34 @@ interface RateLimitRule {
 
 const RATE_LIMIT_RULES: RateLimitRule[] = [
   {
-    id: "MANINY-RTL-001",
+    id: "MANINY-RLM-001",
     severity: "medium",
     category: "code-pattern",
-    title: "Interpolated template literal in rate limiter key or configuration",
-    regex: /\b(rateLimit|createRateLimiter|slowDown)\b[^\r\n]*`[^`]*\$\{/,
-    description: "Avoid building rate-limit keys or policies from untrusted interpolated strings without normalization and bounds.",
+    title: "Authentication or credential POST route lacks visible rate-limiting middleware on line",
+    regex: /\b(router|app)\.post\s*\(\s*['"][^'"]*(login|signin|register|reset-password|forgot-password|otp|verify-code)[^'"]*['"][^\r\n)]*(?![^\r\n]*(rateLimit|limiter|throttle|slowDown))/i,
+    description: "Apply rate limiting and brute-force protection middleware to authentication, registration, OTP, and password-reset endpoints.",
   },
   {
-    id: "MANINY-RTL-002",
+    id: "MANINY-RLM-002",
     severity: "low",
     category: "code-pattern",
-    title: "Authentication/account handler route without explicit rate-limit/throttle reference on line",
-    regex: /\b(login|signin|register|resetPassword|forgotPassword)\b[^\r\n]*(=>|function|\bfetch\b|\bpost\b)(?![^\r\n]*(rateLimit|rateLimiter|throttle|cooldown))/i,
-    description: "Apply per-IP and per-account rate limiting and backoff controls to authentication and password-recovery endpoints.",
+    title: "Sub-250ms fixed timeout used inside authentication or brute-force handler",
+    regex: /\b(login|signin|auth|verifyOtp|bruteForce)[^\r\n{;]*\bsetTimeout\s*\([^\r\n,)]+,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9])\s*\)/i,
+    description: "Avoid near-zero or sub-250ms artificial delays for auth throttling; rely on proper rate limiters, lockouts, or progressive backoff.",
   },
 ];
 
-function makeRtlFindingId(ruleId: string, relFile: string, line: number): string {
-  const hash = crypto
-    .createHash("sha256")
-    .update(`${ruleId}:${relFile}:${line}`)
-    .digest("hex")
-    .slice(0, 10);
+function makeRlmFindingId(ruleId: string, relFile: string, line: number): string {
+  const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
   return `F-${hash}`;
 }
 
 async function collectFiles(dir: string, root: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const results: string[] = [];
-
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) {
-        results.push(...(await collectFiles(path.join(dir, entry.name), root)));
-      }
+      if (!SKIP_DIRS.has(entry.name)) results.push(...(await collectFiles(path.join(dir, entry.name), root)));
     } else if (entry.isFile() && SCAN_EXTS.has(path.extname(entry.name).toLowerCase())) {
       const rel = path.relative(root, path.join(dir, entry.name));
       if (rel) results.push(rel);
@@ -64,31 +57,21 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
 export async function runRateLimitAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
-
   for (const relFile of files) {
     const safePath = resolveSafeWorkspacePath(policy.workspaceRoot, relFile);
     if (!safePath) continue;
-
     let content: string;
-    try {
-      content = await fs.readFile(safePath, "utf8");
-    } catch {
-      continue;
-    }
-
+    try { content = await fs.readFile(safePath, "utf8"); } catch { continue; }
     const lines = content.split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
       const lineText = lines[i] ?? "";
       const trimmed = lineText.trim();
-      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) {
-        continue;
-      }
-
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of RATE_LIMIT_RULES) {
         if (rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
-            id: makeRtlFindingId(rule.id, relFile, lineNum),
+            id: makeRlmFindingId(rule.id, relFile, lineNum),
             ruleId: rule.id,
             title: rule.title,
             category: rule.category,
@@ -103,6 +86,5 @@ export async function runRateLimitAuditor(policy: ManinyPolicy): Promise<Finding
       }
     }
   }
-
   return findings;
 }
