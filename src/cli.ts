@@ -117,6 +117,7 @@ function parseArgs(argv: string[]): {
   countBySeverity: boolean;
   statusFilter?: string;
   groupByRule: boolean;
+  groupByFile: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -147,6 +148,7 @@ function parseArgs(argv: string[]): {
   let countBySeverity = false;
   let statusFilter: string | undefined;
   let groupByRule = false;
+  let groupByFile = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -161,7 +163,9 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--group-by-rule") {
+    if (arg === "--group-by-file") {
+      groupByFile = true;
+    } else if (arg === "--group-by-file --group-by-rule") {
       groupByRule = true;
     } else if (arg === "--status" && next) {
       statusFilter = next.trim();
@@ -295,6 +299,7 @@ function parseArgs(argv: string[]): {
     countBySeverity,
     ...(statusFilter ? { statusFilter } : {}),
     groupByRule,
+    groupByFile,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -418,6 +423,14 @@ async function main(): Promise<void> {
       }, {})
     : undefined;
 
+  const byFile = args.groupByFile
+    ? report.findings.reduce<Record<string, number>>((acc, f: Finding) => {
+        const key = f.filePath ?? f.targetUrl ?? "unknown";
+        acc[key] = (acc[key] ?? 0) + 1;
+        return acc;
+      }, {})
+    : undefined;
+
   const complianceSummary = args.compliance
     ? buildComplianceSummary(report, Boolean(audit))
     : undefined;
@@ -432,6 +445,7 @@ async function main(): Promise<void> {
           summary: report.summary,
           ...(bySeverity ? { bySeverity } : {}),
           ...(byRule ? { byRule } : {}),
+          ...(byFile ? { byFile } : {}),
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
           ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),

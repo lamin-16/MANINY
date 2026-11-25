@@ -16,6 +16,7 @@ import { runRedirectAuditor } from "./stages/redirect-auditor.js";
 import { runModuleLoadAuditor } from "./stages/module-load-auditor.js";
 import { runQueryAuditor } from "./stages/query-auditor.js";
 import { runSessionCookieAuditor } from "./stages/session-cookie-auditor.js";
+import { runSerializationAuditor } from "./stages/serialization-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -70,6 +71,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       modFindings,
       qryFindings,
       sesFindings,
+      serFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -85,6 +87,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runModuleLoadAuditor(policy),
       runQueryAuditor(policy),
       runSessionCookieAuditor(policy),
+      runSerializationAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -102,6 +105,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...modFindings,
       ...qryFindings,
       ...sesFindings,
+      ...serFindings,
     ];
   }
 
