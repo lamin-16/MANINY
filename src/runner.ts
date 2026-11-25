@@ -30,6 +30,7 @@ import { runTemplateHtmlAuditor } from "./stages/template-html-auditor.js";
 import { runDbOrmAuditor } from "./stages/db-orm-auditor.js";
 import { runSensitivePathAuditor } from "./stages/sensitive-path-auditor.js";
 import { runArchiveCompressionAuditor } from "./stages/archive-compression-auditor.js";
+import { runGraphqlWebhookAuditor } from "./stages/graphql-webhook-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -98,6 +99,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       dbOrmFindings,
       pthFindings,
       arcFindings,
+      gqlWebhookFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -127,6 +129,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runDbOrmAuditor(policy),
       runSensitivePathAuditor(policy),
       runArchiveCompressionAuditor(policy),
+      runGraphqlWebhookAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -158,6 +161,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...dbOrmFindings,
       ...pthFindings,
       ...arcFindings,
+      ...gqlWebhookFindings,
     ];
   }
 
