@@ -171,6 +171,7 @@ function parseArgs(argv: string[]): {
   topDistinctRules: boolean;
   topDistinctFiles: boolean;
   topDistinctSeverities: boolean;
+  topDistinctCategories: boolean;
   statusFilter?: string;
   groupByRule: boolean;
   groupByFile: boolean;
@@ -272,6 +273,7 @@ function parseArgs(argv: string[]): {
   let topDistinctRules = false;
   let topDistinctFiles = false;
   let topDistinctSeverities = false;
+  let topDistinctCategories = false;
   let statusFilter: string | undefined;
   let groupByRule = false;
   let groupByFile = false;
@@ -319,7 +321,7 @@ function parseArgs(argv: string[]): {
     } else if (arg === "--status" && next) {
       statusFilter = next.trim();
       i++;
-    } else if (arg === "--group-by-rule --status <st> --top-distinct-severities --top-distinct-files --top-distinct-rules --top-rule-file-severity-category-statuses --top-rule-severity-category-statuses --top-rule-file-category-statuses --top-rule-file-severity-categories --top-rule-file-severity-statuses --top-category-severity-statuses --top-rule-severity-categories --top-rule-severity-statuses --top-rule-file-categories --top-rule-file-statuses --top-rule-file-severities --top-rule-categories --top-severity-categories --top-severity-statuses --top-category-statuses --top-rule-statuses --top-rule-severities --top-status-files --top-category-files --top-severity-files --top-rule-files --top-statuses --top-categories --top-severities --top-files --top-rules --summary-stats --count-by-category-status --count-by-rule-status --count-by-rule-severity --count-by-status-file --count-by-category-file --count-by-status-severity --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
+    } else if (arg === "--group-by-rule --status <st> --top-distinct-categories --top-distinct-severities --top-distinct-files --top-distinct-rules --top-rule-file-severity-category-statuses --top-rule-severity-category-statuses --top-rule-file-category-statuses --top-rule-file-severity-categories --top-rule-file-severity-statuses --top-category-severity-statuses --top-rule-severity-categories --top-rule-severity-statuses --top-rule-file-categories --top-rule-file-statuses --top-rule-file-severities --top-rule-categories --top-severity-categories --top-severity-statuses --top-category-statuses --top-rule-statuses --top-rule-severities --top-status-files --top-category-files --top-severity-files --top-rule-files --top-statuses --top-categories --top-severities --top-files --top-rules --summary-stats --count-by-category-status --count-by-rule-status --count-by-rule-severity --count-by-status-file --count-by-category-file --count-by-status-severity --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
       countBySeverity = true;
     } else if (arg === "--count-by-severity --summary-only") {
       summaryOnly = true;
@@ -513,6 +515,7 @@ function parseArgs(argv: string[]): {
     topDistinctRules,
     topDistinctFiles,
     topDistinctSeverities,
+    topDistinctCategories,
     ...(statusFilter ? { statusFilter } : {}),
     groupByRule,
     groupByFile,
