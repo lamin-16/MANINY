@@ -39,6 +39,7 @@ import { runSubprocessExecAuditor } from "./stages/subprocess-exec-auditor.js";
 import { runDynamicEvalAuditor } from "./stages/dynamic-eval-auditor.js";
 import { runWebsocketAuditor } from "./stages/websocket-auditor.js";
 import { runFileUploadAuditor } from "./stages/file-upload-auditor.js";
+import { runOpenRedirectCorsAuditor } from "./stages/open-redirect-cors-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -116,6 +117,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       dynEvalFindings,
       wskFindings,
       uplFindings,
+      openRdrCorsFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -154,6 +156,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runDynamicEvalAuditor(policy),
       runWebsocketAuditor(policy),
       runFileUploadAuditor(policy),
+      runOpenRedirectCorsAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -194,6 +197,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...dynEvalFindings,
       ...wskFindings,
       ...uplFindings,
+      ...openRdrCorsFindings,
     ];
   }
 
