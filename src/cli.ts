@@ -113,6 +113,7 @@ function parseArgs(argv: string[]): {
   top?: number;
   ruleFilter?: string;
   categoryFilter?: string;
+  summaryOnly: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -139,6 +140,7 @@ function parseArgs(argv: string[]): {
   let top: number | undefined;
   let ruleFilter: string | undefined;
   let categoryFilter: string | undefined;
+  let summaryOnly = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -153,7 +155,9 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--category" && next) {
+    if (arg === "--summary-only") {
+      summaryOnly = true;
+    } else if (arg === "--category" && next) {
       categoryFilter = next.trim();
       i++;
     } else if (arg === "--rule" && next) {
@@ -274,6 +278,7 @@ function parseArgs(argv: string[]): {
     ...(top ? { top } : {}),
     ...(ruleFilter ? { ruleFilter } : {}),
     ...(categoryFilter ? { categoryFilter } : {}),
+    summaryOnly,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -290,7 +295,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --category <cat> --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -379,7 +384,22 @@ async function main(): Promise<void> {
     : undefined;
   const gateFailed = shouldFailGate(report, args.failOn);
 
-  if (args.jsonCompact) {
+  if (args.summaryOnly) {
+    console.log(
+      JSON.stringify(
+        {
+          tool: report.tool,
+          mode: report.mode,
+          summary: report.summary,
+          ...(complianceSummary ? { compliance: complianceSummary } : {}),
+          ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
+          ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
+        },
+        null,
+        2
+      )
+    );
+  } else if (args.jsonCompact) {
     console.log(
       JSON.stringify(
         {
