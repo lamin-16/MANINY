@@ -4,6 +4,7 @@ import { listRules } from "./core/registry.js";
 import { executeManiny } from "./runner.js";
 
 const SEVERITY_RANK: Record<Severity, number> = {
+  info: 0,
   low: 1,
   medium: 2,
   high: 3,
@@ -40,7 +41,13 @@ function parseArgs(argv: string[]): {
     if (arg === "--list-rules") {
       shouldListRules = true;
     } else if (arg === "--severity" && next) {
-      if (next === "low" || next === "medium" || next === "high" || next === "critical") {
+      if (
+        next === "info" ||
+        next === "low" ||
+        next === "medium" ||
+        next === "high" ||
+        next === "critical"
+      ) {
         minSeverity = next;
       }
       i++;
