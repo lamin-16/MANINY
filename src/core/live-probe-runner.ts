@@ -6,10 +6,20 @@ export interface LiveProbeOptions {
   timeoutMs?: number;
 }
 
-const SENSITIVE_PROBE_PATHS = ["/.env", "/.git/HEAD", "/config.json", "/api/health"];
+const SENSITIVE_PROBE_PATHS = ["/.env", "/.git/HEAD", "/config.json", "/.well-known/security.txt"];
 
-function makeEvidence(detail: string, filePath?: string): EvidenceRecord[] {
-  return [{ detail, filePath } as unknown as EvidenceRecord];
+function buildEvidence(summary: string, location: string): EvidenceRecord[] {
+  const rec: Record<string, unknown> = {};
+  for (const key of ["stage","probeType","target","confirmed","message","timestamp"]) {
+    if (/file|path|url|target|location/i.test(key)) {
+      rec[key] = location;
+    } else if (/line|col|offset|status|code|port/i.test(key)) {
+      rec[key] = 1;
+    } else {
+      rec[key] = summary;
+    }
+  }
+  return [rec as unknown as EvidenceRecord];
 }
 
 export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<Finding[]> {
@@ -41,7 +51,7 @@ export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<
         category: "http-hardening",
         status: "needs_review",
         filePath: rawUrl,
-        evidence: makeEvidence(`allowHosts=[${[...allowedSet].join(", ")}]`, rawUrl),
+        evidence: buildEvidence(`allowHosts=[${[...allowedSet].join(", ")}]`, rawUrl),
         title: "Target host skipped because it is not listed in allowed target hosts",
         description: `Host "${parsed.hostname}" was not explicitly permitted in allowHosts; live probe skipped safely.`,
       });
@@ -60,8 +70,14 @@ export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<
 
       const hsts = baseRes.headers.get("strict-transport-security");
       const xcto = baseRes.headers.get("x-content-type-options");
-      if (!hsts || !xcto) {
-        const missing = [!hsts ? "Strict-Transport-Security" : "", !xcto ? "X-Content-Type-Options" : ""].filter(Boolean);
+      const csp = baseRes.headers.get("content-security-policy");
+      const missing = [
+        !hsts ? "Strict-Transport-Security" : "",
+        !xcto ? "X-Content-Type-Options" : "",
+        !csp ? "Content-Security-Policy" : "",
+      ].filter(Boolean);
+
+      if (missing.length > 0) {
         findings.push({
           id: `MANINY-LIVE-001-${seq++}`,
           ruleId: "MANINY-LIVE-001",
@@ -69,7 +85,7 @@ export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<
           category: "http-hardening",
           status: "verified_exploitable",
           filePath: parsed.toString(),
-          evidence: makeEvidence(`HTTP ${baseRes.status}; missing headers: ${missing.join(", ")}`, parsed.toString()),
+          evidence: buildEvidence(`HTTP ${baseRes.status}; missing: ${missing.join(", ")}`, parsed.toString()),
           title: "Live HTTP response missing baseline security headers",
           description: `HTTP ${baseRes.status} from ${parsed.hostname} missing: ${missing.join(", ")}.`,
         });
@@ -85,7 +101,7 @@ export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<
             signal: pController.signal,
             redirect: "manual",
           });
-          if (pRes.status === 200 && p !== "/api/health") {
+          if (pRes.status === 200 && p !== "/.well-known/security.txt") {
             findings.push({
               id: `MANINY-LIVE-002-${seq++}`,
               ruleId: "MANINY-LIVE-002",
@@ -93,7 +109,7 @@ export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<
               category: "http-hardening",
               status: "verified_exploitable",
               filePath: probeUrl,
-              evidence: makeEvidence(`GET ${probeUrl} -> HTTP ${pRes.status}`, probeUrl),
+              evidence: buildEvidence(`GET ${probeUrl} -> HTTP ${pRes.status}`, probeUrl),
               title: "Live probe observed HTTP 200 on sensitive path",
               description: `Endpoint ${probeUrl} returned HTTP 200 during non-destructive GET verification.`,
             });
@@ -111,7 +127,7 @@ export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<
         category: "http-hardening",
         status: "needs_review",
         filePath: parsed.toString(),
-        evidence: makeEvidence(msg, parsed.toString()),
+        evidence: buildEvidence(msg, parsed.toString()),
         title: "Live HTTP probe timed out or failed to connect",
         description: msg,
       });
