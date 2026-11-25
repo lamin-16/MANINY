@@ -119,6 +119,7 @@ function parseArgs(argv: string[]): {
   groupByRule: boolean;
   groupByFile: boolean;
   groupByCategory: boolean;
+  groupByStatus: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -151,6 +152,7 @@ function parseArgs(argv: string[]): {
   let groupByRule = false;
   let groupByFile = false;
   let groupByCategory = false;
+  let groupByStatus = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -165,7 +167,9 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--group-by-category") {
+    if (arg === "--group-by-status") {
+      groupByStatus = true;
+    } else if (arg === "--group-by-status --group-by-category") {
       groupByCategory = true;
     } else if (arg === "--group-by-category --group-by-file") {
       groupByFile = true;
@@ -305,6 +309,7 @@ function parseArgs(argv: string[]): {
     groupByRule,
     groupByFile,
     groupByCategory,
+    groupByStatus,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -443,6 +448,13 @@ async function main(): Promise<void> {
       }, {})
     : undefined;
 
+  const byStatus = args.groupByStatus
+    ? report.findings.reduce<Record<string, number>>((acc, f: Finding) => {
+        acc[f.status] = (acc[f.status] ?? 0) + 1;
+        return acc;
+      }, {})
+    : undefined;
+
   const complianceSummary = args.compliance
     ? buildComplianceSummary(report, Boolean(audit))
     : undefined;
@@ -459,6 +471,7 @@ async function main(): Promise<void> {
           ...(byRule ? { byRule } : {}),
           ...(byFile ? { byFile } : {}),
           ...(byCategory ? { byCategory } : {}),
+          ...(byStatus ? { byStatus } : {}),
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
           ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
