@@ -106,6 +106,14 @@ npm test
 
 ---
 
+## <span style="color:#FF7A00;">⚖️ Legal Disclaimer & Authorized Use Policy</span>
+
+> **تنبيه قانوني وإخلاء مسؤولية:** منصة **MANINY DIGITAL** مطوَّرة لأغراض الاختبار الأمني المصرح به، البحث الدفاعي، وتقييم جاهزية الأنظمة فقط. يُحظر استخدام هذه الأداة ضد أي خادم أو تطبيق أو شبكة دون إذن كتابي مسبق وصريح من مالك النظام. يتحمل المستخدم وحده المسؤولية القانونية الكاملة عن أي استخدام غير مصرح به أو مخالف للقوانين المحلية والدولية.
+>
+> **Legal Disclaimer:** **MANINY DIGITAL** is built strictly for authorized security auditing, defensive research, and controlled exploitability verification. Running active probes against any target without explicit prior authorization from the system owner is strictly prohibited. The authors and contributors assume no liability for misuse or unauthorized activity.
+
+---
+
 ## <span style="color:#FF7A00;">📜 License</span>
 
 See [LICENSE](./LICENSE) (MIT License, Copyright © 2026 MANINY DIGITAL).
