@@ -4,10 +4,12 @@
 
 # <span style="font-size:48px;font-weight:900;letter-spacing:4px;"><span style="color:#FFD700;">M</span><span style="color:#00FF7F;">A</span><span style="color:#FF7A00;">N</span><span style="color:#FFD700;">I</span><span style="color:#00FF7F;">N</span><span style="color:#FF7A00;">Y</span> <span style="color:#00FF7F;">D</span><span style="color:#FFD700;">I</span><span style="color:#00FF7F;">G</span><span style="color:#FF7A00;">I</span><span style="color:#FFD700;">T</span><span style="color:#00FF7F;">A</span><span style="color:#FF7A00;">L</span></span>
 
-[![MANINY DIGITAL](https://img.shields.io/badge/MANINY-DIGITAL-FFD700?style=for-the-badge&labelColor=111111&color=00FF7F)](#)
-[![TypeScript](https://img.shields.io/badge/TYPESCRIPT-5-FFD700?style=for-the-badge&labelColor=111111&color=FFD700)](#)
-[![Node.js](https://img.shields.io/badge/NODE.JS-%3E%3D20-00FF7F?style=for-the-badge&labelColor=111111&color=00FF7F)](#)
-[![MIT License](https://img.shields.io/badge/LICENSE-MIT-FF7A00?style=for-the-badge&labelColor=111111&color=FF7A00)](./LICENSE)
+[![MANINY DIGITAL](https://img.shields.io/badge/MANINY-DIGITAL-00FF7F?style=for-the-badge&labelColor=0D1117&color=FFD700)](#)
+[![OFFENSE ENGINE](https://img.shields.io/badge/OFFENSE-ELITE_V2-FFD700?style=for-the-badge&labelColor=0D1117&color=00FF7F)](#)
+[![LIVE PROBES](https://img.shields.io/badge/LIVE_PROBES-VERIFIED-FF7A00?style=for-the-badge&labelColor=0D1117&color=FF7A00)](#)
+[![CHAIN SCORING](https://img.shields.io/badge/EXPLOIT_CHAIN-0--100-FFD700?style=for-the-badge&labelColor=0D1117&color=FFD700)](#)
+[![TYPESCRIPT](https://img.shields.io/badge/TYPESCRIPT-5.x-00FF7F?style=for-the-badge&labelColor=0D1117&color=00FF7F)](#)
+[![LICENSE MIT](https://img.shields.io/badge/LICENSE-MIT-FF7A00?style=for-the-badge&labelColor=0D1117&color=FF7A00)](./LICENSE)
 
 ### <span style="color:#FFD700;">Offensive Security, Vulnerability Discovery & Real Exploit Verification</span>
 <span style="color:#FFD700;">● Bright Gold (#FFD700)</span> · <span style="color:#00FF7F;">● Spring Green (#00FF7F)</span> · <span style="color:#FF7A00;">● Orange (#FF7A00)</span>
@@ -67,6 +69,17 @@
 
 * CLI 옵션: `--top-exploitability-rank`, `--attack-report`, `--elite-matrix`.
 * 책임 있는 사용: 명시적으로 승인된 대상에 대해서만 라이브 또는 차등 검사를 수행하세요.
+
+---
+
+## <span style="color:#FFD700;">🎛️ Tactical Command & Evidence Dashboard</span>
+
+| Signal | Indicator / Flag | Operational Output |
+| :---: | :--- | :--- |
+| 🟡 **VERIFIED** | `status: verified_exploitable` | Live-confirmed exploitability with structured HTTP/response evidence |
+| 🟢 **RANKING** | `--top-exploitability-rank` | Weighted 0–100 chain scoring across critical, high, medium, and low tiers |
+| 🟠 **REPORT** | `--attack-report` | Unified JSON attack report aggregating confirmed findings and tier counts |
+| 🟡 **MATRIX** | `--elite-matrix` | Step-by-step reproduction guide (`reproductionSteps`) and remediation hints |
 
 ---
 
