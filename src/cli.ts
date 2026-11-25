@@ -2046,6 +2046,7 @@ mode: args.mode,
     console.log(
       JSON.stringify(
         {
+          hybridChains: correlateHybridChains(report.findings),
           ...report,
           ...(bySeverity ? { bySeverity } : {}),
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
