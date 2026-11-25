@@ -1,9 +1,15 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import crypto from "node:crypto";
 import { Finding, ManinyPolicy } from "../core/types.js";
 import { getRule } from "../core/registry.js";
 import { checkAutoFixEligibility, resolveSafeWorkspacePath } from "../core/policy-guard.js";
 import { transitionStatus } from "../core/state-machine.js";
+
+function isReportArtifactPath(filePath: string): boolean {
+  const base = path.basename(filePath).toLowerCase();
+  return base.startsWith("maniny-report") || base.endsWith(".sarif");
+}
 
 function createSimpleDiff(filePath: string, beforeText: string, afterText: string): string {
   return [
@@ -34,6 +40,22 @@ export async function runFixer(
       current.status === "needs_review";
 
     if (!canPatchCurrentState || !current.filePath) {
+      results.push(current);
+      continue;
+    }
+
+    if (isReportArtifactPath(current.filePath)) {
+      current.evidence.push({
+        stage: "review",
+        probeType: "remediation-check",
+        target: current.filePath,
+        confirmed: false,
+        message: "Auto-fix skipped: MANINY report artifacts are never modified.",
+        timestamp: new Date().toISOString(),
+      });
+      if (current.status !== "needs_review") {
+        current = transitionStatus(current, "needs_review", "Report artifact protected from patching");
+      }
       results.push(current);
       continue;
     }

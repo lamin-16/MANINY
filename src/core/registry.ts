@@ -79,6 +79,24 @@ registerRules([
     },
   },
   {
+    ruleId: "MANINY-CODE-005",
+    title: "Direct DOM write via document.write()",
+    category: "code-pattern",
+    severity: "high",
+    description: "Detects document.write() usage which can inject untrusted markup or block rendering.",
+    detectLine: (line) => /\bdocument\.write\s*\(/.test(line),
+    verifyLine: (line) => /\bdocument\.write\s*\(/.test(line),
+  },
+  {
+    ruleId: "MANINY-CODE-006",
+    title: "Raw HTML injection sink via dangerouslySetInnerHTML",
+    category: "code-pattern",
+    severity: "high",
+    description: "Detects dangerouslySetInnerHTML usage requiring explicit sanitization audit.",
+    detectLine: (line) => /\bdangerouslySetInnerHTML\b/.test(line),
+    verifyLine: (line) => /\bdangerouslySetInnerHTML\b/.test(line),
+  },
+  {
     ruleId: "MANINY-HTTP-001",
     title: "TLS certificate verification disabled (rejectUnauthorized: false)",
     category: "http-hardening",
@@ -101,12 +119,12 @@ registerRules([
     severity: "medium",
     description: "Detects unencrypted http:// URLs outside localhost for transport hardening.",
     detectLine: (line) =>
-      /http:\/\/(?!localhost|127\.0\.0\.1|\[::1\])[A-Za-z0-9.-]+/.test(line),
+      /http:\/\/(?!localhost|127\.0\.0\.1|[::1])[A-Za-z0-9.-]+/.test(line),
     verifyLine: (line) =>
-      /http:\/\/(?!localhost|127\.0\.0\.1|\[::1\])[A-Za-z0-9.-]+/.test(line),
+      /http:\/\/(?!localhost|127\.0\.0\.1|[::1])[A-Za-z0-9.-]+/.test(line),
     fixLine: (line) => {
       const nextLine = line.replace(
-        /http:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/g,
+        /http:\/\/(?!localhost|127\.0\.0\.1|[::1])/g,
         "https://"
       );
       return { changed: nextLine !== line, nextLine };
@@ -124,6 +142,21 @@ registerRules([
       ),
     verifyLine: (line) =>
       /(?:api[_-]?key|secret[_-]?key|auth[_-]?token|private[_-]?key)\s*[:=]\s*["'][A-Za-z0-9_\-]{16,}["']/i.test(
+        line
+      ),
+  },
+  {
+    ruleId: "MANINY-SEC-002",
+    title: "Weak randomness via Math.random() in security/token context",
+    category: "secret-exposure",
+    severity: "medium",
+    description: "Detected Math.random() used near token, secret, key, nonce, or session identifiers.",
+    detectLine: (line) =>
+      /(?:token|secret|key|nonce|session|auth|salt|password).{0,40}Math\.random\s*\(|Math\.random\s*\(.{0,40}(?:token|secret|key|nonce|session|auth|salt|password)/i.test(
+        line
+      ),
+    verifyLine: (line) =>
+      /(?:token|secret|key|nonce|session|auth|salt|password).{0,40}Math\.random\s*\(|Math\.random\s*\(.{0,40}(?:token|secret|key|nonce|session|auth|salt|password)/i.test(
         line
       ),
   },

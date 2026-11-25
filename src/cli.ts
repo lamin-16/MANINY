@@ -1,6 +1,14 @@
 import path from "node:path";
-import { ManinyPolicy, ReportFormat, RunMode } from "./core/types.js";
+import { ManinyPolicy, ReportFormat, RunMode, Severity } from "./core/types.js";
+import { listRules } from "./core/registry.js";
 import { executeManiny } from "./runner.js";
+
+const SEVERITY_RANK: Record<Severity, number> = {
+  low: 1,
+  medium: 2,
+  high: 3,
+  critical: 4,
+};
 
 function parseArgs(argv: string[]): {
   mode: RunMode;
@@ -9,6 +17,8 @@ function parseArgs(argv: string[]): {
   targetUrls: string[];
   allowProbes: boolean;
   allowFix: boolean;
+  listRules: boolean;
+  minSeverity?: Severity;
   reportBase?: string;
   reportFormat: ReportFormat;
 } {
@@ -18,6 +28,8 @@ function parseArgs(argv: string[]): {
   const targetUrls: string[] = [];
   let allowProbes = false;
   let allowFix = false;
+  let shouldListRules = false;
+  let minSeverity: Severity | undefined;
   let reportBase: string | undefined;
   let reportFormat: ReportFormat = "json";
 
@@ -25,7 +37,14 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--mode" && next) {
+    if (arg === "--list-rules") {
+      shouldListRules = true;
+    } else if (arg === "--severity" && next) {
+      if (next === "low" || next === "medium" || next === "high" || next === "critical") {
+        minSeverity = next;
+      }
+      i++;
+    } else if (arg === "--mode" && next) {
       if (
         next === "detect" ||
         next === "verify" ||
@@ -67,13 +86,27 @@ function parseArgs(argv: string[]): {
     targetUrls,
     allowProbes,
     allowFix,
+    listRules: shouldListRules,
     reportFormat,
+    ...(minSeverity ? { minSeverity } : {}),
     ...(reportBase ? { reportBase } : {}),
   };
 }
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args.listRules) {
+    const rules = listRules().map((r) => ({
+      ruleId: r.ruleId,
+      severity: r.severity,
+      category: r.category,
+      autoFix: Boolean(r.fixLine),
+      title: r.title,
+    }));
+    console.log(JSON.stringify({ total: rules.length, rules }, null, 2));
+    return;
+  }
 
   const policy: ManinyPolicy = {
     workspaceRoot: args.workspace,
@@ -91,6 +124,11 @@ async function main(): Promise<void> {
     reportFormat: args.reportFormat,
     ...(args.reportBase ? { reportBasePath: args.reportBase } : {}),
   });
+
+  if (args.minSeverity) {
+    const threshold = SEVERITY_RANK[args.minSeverity];
+    report.findings = report.findings.filter((f) => SEVERITY_RANK[f.severity] >= threshold);
+  }
 
   console.log(JSON.stringify(report, null, 2));
 }
