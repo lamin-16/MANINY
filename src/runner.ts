@@ -73,6 +73,7 @@ import { runResourceExhaustionAuditor } from "./stages/resource-exhaustion-audit
 import { runHardcodedCredentialsAuditor } from "./stages/hardcoded-credentials-auditor.js";
 import { runDependencySupplyChainAuditor } from "./stages/dependency-supply-chain-auditor.js";
 import { runContainerSecurityAuditor } from "./stages/container-security-auditor.js";
+import { runIacPermissionsAuditor } from "./stages/iac-permissions-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
