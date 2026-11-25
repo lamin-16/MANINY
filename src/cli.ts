@@ -3,7 +3,12 @@ import { ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from ".
 import { listRules } from "./core/registry.js";
 import { AgentProviderId, discoverConfiguredAgents, runMultiAgentAdvisory } from "./core/agents.js";
 import { buildExecutionAudit } from "./core/audit-trail.js";
-import { executeManiny } from "./runner.js";
+import { runDetector } from "./stages/detector.js";
+import { runSafeVerifier } from "./stages/verifier.js";
+import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
+import { runFixer } from "./stages/fixer.js";
+import { runDefenderReviewer } from "./stages/reviewer.js";
+import { buildReport } from "./stages/reporter.js";
 
 const SEVERITY_RANK: Record<Severity, number> = {
   info: 0,
@@ -33,6 +38,7 @@ function parseArgs(argv: string[]): {
   targetUrls: string[];
   allowProbes: boolean;
   allowFix: boolean;
+  urlOnly: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -48,6 +54,7 @@ function parseArgs(argv: string[]): {
   const targetUrls: string[] = [];
   let allowProbes = false;
   let allowFix = false;
+  let urlOnly = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -63,6 +70,8 @@ function parseArgs(argv: string[]): {
 
     if (arg === "--list-rules") {
       shouldListRules = true;
+    } else if (arg === "--url-only") {
+      urlOnly = true;
     } else if (arg === "--agents-status") {
       agentsStatusOnly = true;
     } else if (arg === "--integrity") {
@@ -137,6 +146,7 @@ function parseArgs(argv: string[]): {
     targetUrls,
     allowProbes,
     allowFix,
+    urlOnly,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -146,6 +156,33 @@ function parseArgs(argv: string[]): {
     ...(minSeverity ? { minSeverity } : {}),
     ...(reportBase ? { reportBase } : {}),
   };
+}
+
+async function runWithUrlOnlySupport(args: ReturnType<typeof parseArgs>, policy: ManinyPolicy) {
+  if (!args.urlOnly) {
+    const { executeManiny } = await import("./runner.js");
+    return executeManiny({
+      mode: args.mode,
+      policy,
+      targetUrls: args.targetUrls,
+      reportFormat: args.reportFormat,
+      ...(args.reportBase ? { reportBasePath: args.reportBase } : {}),
+    });
+  }
+
+  let findings = await runDetector(policy, args.targetUrls, { skipWorkspaceScan: true });
+  if (args.mode === "verify" || args.mode === "pipeline") {
+    findings = await runSafeVerifier(findings, policy);
+    const simFindings = await runAdversarialSimulation(args.targetUrls, policy);
+    findings = [...findings, ...simFindings];
+  }
+  if (args.mode === "fix" || args.mode === "pipeline") {
+    findings = await runFixer(findings, policy);
+  }
+  if (args.mode === "review" || args.mode === "pipeline") {
+    findings = await runDefenderReviewer(findings, policy);
+  }
+  return buildReport(args.mode, policy, findings);
 }
 
 async function main(): Promise<void> {
@@ -192,13 +229,7 @@ async function main(): Promise<void> {
     blockedPathSubstrings: [".env", ".git", "node_modules", "id_rsa", "credentials"],
   };
 
-  const report = await executeManiny({
-    mode: args.mode,
-    policy,
-    targetUrls: args.targetUrls,
-    reportFormat: args.reportFormat,
-    ...(args.reportBase ? { reportBasePath: args.reportBase } : {}),
-  });
+  const report = await runWithUrlOnlySupport(args, policy);
 
   if (args.minSeverity) {
     const threshold = SEVERITY_RANK[args.minSeverity];
