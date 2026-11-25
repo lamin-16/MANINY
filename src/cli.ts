@@ -2062,10 +2062,12 @@ mode: args.mode,
       )
     );
   } else {
+    const defaultHybridChains = correlateHybridChains(report.findings);
     console.log(
       JSON.stringify(
         {
           ...report,
+          hybridChains: defaultHybridChains,
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { audit } : {}),
           ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
