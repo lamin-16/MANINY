@@ -18,24 +18,24 @@ interface RateLimitRule {
 
 const RATE_LIMIT_RULES: RateLimitRule[] = [
   {
-    id: "MANINY-RLM-001",
-    severity: "low",
-    category: "code-pattern",
-    title: "Auth/reset/token handler identifier without rate-limit/throttle reference on line",
-    regex: /\b(resetPassword|forgotPassword|issueToken|authLogin)\b(?![^\r\n]*(rateLimit|rateLimiter|throttle|limiter))/i,
-    description: "Apply rate limiting or throttling controls to authentication, password reset, and token issuance flows.",
-  },
-  {
-    id: "MANINY-RLM-002",
+    id: "MANINY-RTL-001",
     severity: "medium",
     category: "code-pattern",
-    title: "Non-positive or zero max limit configured in rate-limit object",
-    regex: /\brateLimit\b[^\r\n]*\b(max|limit)\s*:\s*(0|-\d+)\b/i,
-    description: "Ensure rate-limit thresholds are configured with positive bounds matching intended traffic capacity.",
+    title: "Interpolated template literal in rate limiter key or configuration",
+    regex: /\b(rateLimit|createRateLimiter|slowDown)\b[^\r\n]*`[^`]*\$\{/,
+    description: "Avoid building rate-limit keys or policies from untrusted interpolated strings without normalization and bounds.",
+  },
+  {
+    id: "MANINY-RTL-002",
+    severity: "low",
+    category: "code-pattern",
+    title: "Authentication/account handler route without explicit rate-limit/throttle reference on line",
+    regex: /\b(login|signin|register|resetPassword|forgotPassword)\b[^\r\n]*(=>|function|\bfetch\b|\bpost\b)(?![^\r\n]*(rateLimit|rateLimiter|throttle|cooldown))/i,
+    description: "Apply per-IP and per-account rate limiting and backoff controls to authentication and password-recovery endpoints.",
   },
 ];
 
-function makeRlmFindingId(ruleId: string, relFile: string, line: number): string {
+function makeRtlFindingId(ruleId: string, relFile: string, line: number): string {
   const hash = crypto
     .createHash("sha256")
     .update(`${ruleId}:${relFile}:${line}`)
@@ -88,7 +88,7 @@ export async function runRateLimitAuditor(policy: ManinyPolicy): Promise<Finding
         if (rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
-            id: makeRlmFindingId(rule.id, relFile, lineNum),
+            id: makeRtlFindingId(rule.id, relFile, lineNum),
             ruleId: rule.id,
             title: rule.title,
             category: rule.category,

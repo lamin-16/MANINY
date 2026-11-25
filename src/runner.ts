@@ -124,6 +124,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       jwtTokFindings,
       gqlSecFindings,
       ssrNetFindings,
+      rtlFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -166,6 +167,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runJwtTokenAuditor(policy),
       runGraphqlSecurityAuditor(policy),
       runSsrfNetworkAuditor(policy),
+      runRateLimitAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -210,6 +212,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...jwtTokFindings,
       ...gqlSecFindings,
       ...ssrNetFindings,
+      ...rtlFindings,
     ];
   }
 
