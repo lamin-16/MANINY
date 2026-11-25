@@ -52,6 +52,10 @@ function isCommentOrRegexPatternLine(trimmedLine: string): boolean {
   return false;
 }
 
+function isRuleMetadataLine(trimmed: string): boolean {
+  return /^(title|description)\s*:/.test(trimmed);
+}
+
 async function walkWorkspaceFiles(dirPath: string, rootDir: string): Promise<string[]> {
   const entries = await fs.readdir(dirPath, { withFileTypes: true });
   const files: string[] = [];
@@ -113,7 +117,7 @@ export async function runDetector(
       for (let i = 0; i < lines.length; i++) {
         const lineText = lines[i] ?? "";
         const trimmed = lineText.trim();
-        if (isCommentOrRegexPatternLine(trimmed)) {
+        if (isCommentOrRegexPatternLine(trimmed) || isRuleMetadataLine(trimmed)) {
           continue;
         }
 
