@@ -18,24 +18,24 @@ interface PrototypePollutionRule {
 
 const PROTOTYPE_POLLUTION_RULES: PrototypePollutionRule[] = [
   {
-    id: "MANINY-PRT-001",
+    id: "MANINY-PRP-001",
     severity: "high",
     category: "code-pattern",
-    title: "Direct __proto__ or constructor.prototype reference in source code",
-    regex: /(__proto__|constructor\s*\.\s*prototype)\b/,
-    description: "Avoid mutating or referencing __proto__ and constructor.prototype directly; use Map or explicit allowlisted keys.",
+    title: "Direct reference or assignment to __proto__ or constructor.prototype",
+    regex: /(__proto__|constructor\s*\.\s*prototype)\s*(=|\[|\.)/i,
+    description: "Avoid mutating or referencing __proto__ or constructor.prototype directly; use Map or Object.create(null) for dynamic key dictionaries.",
   },
   {
-    id: "MANINY-PRT-002",
+    id: "MANINY-PRP-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Dynamic bracket property assignment using template interpolation",
-    regex: /\b[A-Za-z_$][A-Za-z0-9_$]*\s*\[\s*`[^`]*\$\{[^}]+\}[^`]*`\s*\]\s*=/,
-    description: "Guard dynamic bracket assignments against dangerous keys (__proto__, constructor, prototype) before writing properties.",
+    title: "Dynamic bracket key assignment without visible prototype guard on line",
+    regex: /\[\s*(`[^`]*\$\{[^}]+\}[^`]*`|[A-Za-z_$][A-Za-z0-9_$]*)\s*\]\s*=[^\r\n;]*(?![^\r\n]*(__proto__|hasOwnProperty|Object\.hasOwn))/i,
+    description: "Guard dynamic property assignments against '__proto__', 'prototype', and 'constructor' keys or use a Map instance.",
   },
 ];
 
-function makePrtFindingId(ruleId: string, relFile: string, line: number): string {
+function makePrpFindingId(ruleId: string, relFile: string, line: number): string {
   const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
   return `F-${hash}`;
 }
@@ -71,7 +71,7 @@ export async function runPrototypePollutionAuditor(policy: ManinyPolicy): Promis
         if (rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
-            id: makePrtFindingId(rule.id, relFile, lineNum),
+            id: makePrpFindingId(rule.id, relFile, lineNum),
             ruleId: rule.id,
             title: rule.title,
             category: rule.category,
