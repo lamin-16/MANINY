@@ -44,6 +44,7 @@ import { runJwtTokenAuditor } from "./stages/jwt-token-auditor.js";
 import { runGraphqlSecurityAuditor } from "./stages/graphql-security-auditor.js";
 import { runMassAssignmentAuditor } from "./stages/mass-assignment-auditor.js";
 import { runSecretExposureAuditor } from "./stages/secret-exposure-auditor.js";
+import { runAccessControlAuditor } from "./stages/access-control-auditor.js";
 import { runSsrfNetworkAuditor } from "./stages/ssrf-network-auditor.js";
 import { runCspHeadersAuditor } from "./stages/csp-headers-auditor.js";
 import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";
