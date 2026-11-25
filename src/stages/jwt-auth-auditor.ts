@@ -21,17 +21,17 @@ const JWT_AUTH_RULES: JwtAuthRule[] = [
     id: "MANINY-JWT-001",
     severity: "high",
     category: "code-pattern",
-    title: "Insecure JWT algorithm 'none' or hardcoded secret literal in token operation",
-    regex: /\bjwt\.(sign|verify)\s*\([^\r\n)]*(algorithm\s*:\s*['"]none['"]|['"][A-Za-z0-9_\-+/=]{12,}['"])/i,
-    description: "Avoid 'none' JWT algorithms and never hardcode signing secrets in source code; load strong secrets from environment configuration.",
+    title: "JWT signing or verification uses 'none' algorithm or hardcoded literal secret",
+    regex: /\b(jwt\.sign|jwt\.verify|signToken|verifyToken)\s*\([^\r\n)]*(algorithm\s*:\s*['"]none['"]|['"][A-Za-z0-9_@.-]{1,12}['"])/i,
+    description: "Reject 'none' JWT algorithms and load signing/verification secrets from secure environment configuration with sufficient entropy.",
   },
   {
     id: "MANINY-JWT-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Interpolated Bearer or Authorization header construction",
-    regex: /\b(Authorization|Bearer)\b[^\r\n]*`[^`]*\$\{[^}]+\}[^`]*`/i,
-    description: "Ensure token values are properly validated and scoped before embedding them into Authorization or Bearer headers.",
+    title: "jwt.decode() called directly without signature verification in same statement",
+    regex: /\bjwt\.decode\s*\([^\r\n)]*(?![^\r\n]*(jwt\.verify|verifySignature))/i,
+    description: "Use jwt.verify() with explicit algorithm and audience/issuer checks rather than relying on unverified jwt.decode() for authorization.",
   },
 ];
 
