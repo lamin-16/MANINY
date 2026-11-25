@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode } from "./core/types.js";
 import { formatSarifReport } from "./core/reporter.js";
 import { runDetector } from "./stages/detector.js";
+import { runDependencyAuditor } from "./stages/dependency-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -39,6 +40,11 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
   } = options;
 
   let findings = await runDetector(policy, targetUrls, { skipWorkspaceScan });
+
+  if (!skipWorkspaceScan) {
+    const depFindings = await runDependencyAuditor(policy);
+    findings = [...findings, ...depFindings];
+  }
 
   if (mode === "verify" || mode === "pipeline") {
     findings = await runSafeVerifier(findings, policy);

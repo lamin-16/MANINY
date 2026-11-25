@@ -34,6 +34,7 @@ function parseArgs(argv: string[]): {
   allowProbes: boolean;
   allowFix: boolean;
   urlOnly: boolean;
+  jsonCompact: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -50,6 +51,7 @@ function parseArgs(argv: string[]): {
   let allowProbes = false;
   let allowFix = false;
   let urlOnly = false;
+  let jsonCompact = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -67,6 +69,8 @@ function parseArgs(argv: string[]): {
       shouldListRules = true;
     } else if (arg === "--url-only") {
       urlOnly = true;
+    } else if (arg === "--json-compact") {
+      jsonCompact = true;
     } else if (arg === "--agents-status") {
       agentsStatusOnly = true;
     } else if (arg === "--integrity") {
@@ -142,6 +146,7 @@ function parseArgs(argv: string[]): {
     allowProbes,
     allowFix,
     urlOnly,
+    jsonCompact,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -213,6 +218,29 @@ async function main(): Promise<void> {
   }
 
   const audit = args.includeIntegrity ? buildExecutionAudit(report.findings) : undefined;
+
+  if (args.jsonCompact) {
+    console.log(
+      JSON.stringify(
+        {
+          tool: report.tool,
+          mode: report.mode,
+          summary: report.summary,
+          ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
+          items: report.findings.map((f) => ({
+            id: f.id,
+            ruleId: f.ruleId,
+            severity: f.severity,
+            status: f.status,
+            target: f.filePath ? `${f.filePath}:${f.line ?? 1}` : f.targetUrl ?? "",
+          })),
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
 
   if (args.agentsRequested) {
     const configured = discoverConfiguredAgents(args.agentProviders);
