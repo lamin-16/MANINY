@@ -21,17 +21,17 @@ const MASS_ASSIGNMENT_RULES: MassAssignmentRule[] = [
     id: "MANINY-MAS-001",
     severity: "high",
     category: "code-pattern",
-    title: "Raw request body passed directly to persistence or assign helper",
-    regex: /\b(Object\.assign|create|update|upsert|save)\s*\(\s*[^\r\n)]*\b(req\.body|requestBody|rawBody)\b/i,
-    description: "Pick or validate explicit allowlisted fields before passing request payloads into model writes or object assignments.",
+    title: "Raw request body or query passed directly to object merge or model mutation",
+    regex: /\b(Object\.assign|\.(create|update|upsert))\s*\([^\r\n)]*\b(req\.body|req\.query)\b[^\r\n)]*(?![^\r\n]*(pick|allowedFields|schema|safeParse|zod))/i,
+    description: "Explicitly allowlist permitted fields and validate incoming request payloads before merging or persisting model records.",
   },
   {
     id: "MANINY-MAS-002",
     severity: "medium",
     category: "code-pattern",
-    title: "Spread of raw request body inside object literal",
-    regex: /\.\.\.\s*(req\.body|requestBody|rawBody)\b/,
-    description: "Avoid spreading raw request bodies directly into objects; map vetted properties explicitly to prevent mass assignment.",
+    title: "Privilege-sensitive property assigned alongside request body without visible guard",
+    regex: /\b(role|isAdmin|permissions|verified|plan)\b\s*[:=][^\r\n;,)]*\breq\.body\b[^\r\n;,)]*(?![^\r\n]*(session\.userId|authorize|isAdmin))/i,
+    description: "Prevent clients from setting privilege, role, or entitlement attributes directly through unguarded request payloads.",
   },
 ];
 
