@@ -87,6 +87,7 @@ import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js"
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
+import { runDependencySupplyAuditor } from "./stages/dependency-supply-auditor.js";
 import { runOauthStateAuditor } from "./stages/oauth-state-auditor.js";
 import { runTenantIsolationAuditor } from "./stages/tenant-isolation-auditor.js";
 import { runFeatureFlagAuditor } from "./stages/feature-flag-auditor.js";
