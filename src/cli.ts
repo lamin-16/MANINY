@@ -37,7 +37,8 @@ const entries = await fs.readdir(dir, { withFileTypes: true });
         }
       } else if (entry.isFile() && CODE_EXTS.has(path.extname(entry.name).toLowerCase())) {
         const full = path.join(dir, entry.name);
-        const content = await fs.readFile(full, "utf8");
+        const resolvedFile = path.resolve(full);
+        const content = await fs.readFile(resolvedFile, "utf8");
         filesCount++;
         totalLines += content.split(/\r?\n/).length;
       }

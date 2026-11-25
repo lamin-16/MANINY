@@ -1,3 +1,4 @@
+import path from "node:path";
 import fs from "node:fs/promises";
 import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode } from "./core/types.js";
 import { runSafeLiveHttpProbes } from "./core/live-probe-runner.js";
@@ -396,11 +397,12 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
   };
 
   if (reportBasePath) {
+    const safeReportBase = path.resolve(reportBasePath);
     if (reportFormat === "json" || reportFormat === "both") {
-      await fs.writeFile(`${reportBasePath}.json`, JSON.stringify(report, null, 2), "utf8");
+      await fs.writeFile(`${safeReportBase}.json`, JSON.stringify(report, null, 2), "utf8");
     }
     if (reportFormat === "sarif" || reportFormat === "both") {
-      await fs.writeFile(`${reportBasePath}.sarif`, formatSarifReport(report), "utf8");
+      await fs.writeFile(`${safeReportBase}.sarif`, formatSarifReport(report), "utf8");
     }
   }
 
