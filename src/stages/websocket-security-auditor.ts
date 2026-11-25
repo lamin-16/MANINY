@@ -19,19 +19,19 @@ interface WebsocketSecurityRule {
 const WEBSOCKET_SECURITY_RULES: WebsocketSecurityRule[] = [
   {
     id: "MANINY-WSC-001",
-    severity: "high",
+    severity: "medium",
     category: "code-pattern",
-    title: "WebSocket connection handler lacks visible origin or authentication guard on line",
-    regex: /\b(wss|io|socket)\.on\s*\(\s*['"]connection['"][^\r\n)]*(?![^\r\n]*(origin|token|authenticate|verifyClient|session))/i,
-    description: "Verify client authentication tokens and check allowed origins on WebSocket handshake/connection handlers.",
+    title: "WebSocket or socket event handler lacks visible authentication or validation guard on line",
+    regex: /\b(socket\.on|ws\.on|io\.on)\s*\([^\r\n)]*(?![^\r\n]*(auth|session|origin|validate|verify))/i,
+    description: "Authenticate WebSocket sessions, validate origins, and verify message schemas on real-time event handlers.",
   },
   {
     id: "MANINY-WSC-002",
-    severity: "medium",
+    severity: "high",
     category: "code-pattern",
-    title: "Incoming WebSocket message or data passed directly to parser or DOM sink without visible check",
-    regex: /\b(message|data)\b[^\r\n;,)]*\b(JSON\.parse|innerHTML|eval)\b[^\r\n;,)]*(?![^\r\n]*(schema|safeParse|sanitize|validate))/i,
-    description: "Validate and sanitize incoming WebSocket frames with a strict schema before parsing or rendering them.",
+    title: "WebSocket origin check explicitly bypassed or disabled on line",
+    regex: /\b(skipOriginCheck|allowAnyOrigin|disableOriginValidation)\b[^\r\n;,)]*[:=]\s*true/i,
+    description: "Enforce explicit origin allowlisting on WebSocket connections to prevent cross-site WebSocket hijacking.",
   },
 ];
 
