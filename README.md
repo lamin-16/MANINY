@@ -70,19 +70,18 @@
 
 ---
 
-## <span style="color:#FFD700;">🧭 Architecture & Modules</span>
+## <span style="color:#FFD700;">🧭 Architecture & Modules (Tabelle)</span>
 
-| Path | Role |
-| :--- | :--- |
-| `src/runner.ts` | Orchestrates static stages, scoped live probes, and exploit chain scoring |
-| `src/cli.ts` | Command-line interface and exploitability/attack report flags |
-| `src/core/live-probe-runner.ts` | Safe non-destructive live HTTP and sensitive path probe runner |
-| `src/core/http-auth-session-prober.ts` | Live CORS, Set-Cookie attributes, and auth boundary prober |
-| `src/core/differential-injection-prober.ts` | Baseline vs. probe differential injection, redirect, and traversal engine |
-| `src/core/elite-attack-engine.ts` | Elite verification checks and reproduction matrix generator |
-| `src/core/exploit-chain-verifier.ts` | Exploitability scoring (0-100) and unified attack report builder |
-| `src/stages/` | Specialized analysis stages and shared `stage-utils.ts` layer |
-
+| Tier | Module / Path | Engineering Role |
+| :---: | :--- | :--- |
+| 🛡️ Core | `src/runner.ts` | Orchestrates static stages, scoped live probes, and exploit chain scoring |
+| 🛡️ CLI | `src/cli.ts` | Command-line interface with exploitability rank, attack report, and matrix flags |
+| ⚡ Live | `src/core/live-probe-runner.ts` | Safe non-destructive live HTTP headers and sensitive path probe runner |
+| ⚡ Auth | `src/core/http-auth-session-prober.ts` | Live CORS reflection, Set-Cookie attributes, and auth boundary prober |
+| 🎯 Diff | `src/core/differential-injection-prober.ts` | Baseline vs. probe differential injection, redirect, and traversal engine |
+| 🎯 Elite | `src/core/elite-attack-engine.ts` | Elite verification checks, risk methods, and reproduction matrix generator |
+| 🎯 Chain | `src/core/exploit-chain-verifier.ts` | Exploitability scoring (0-100) and unified attack verification report |
+| 🧩 Stages | `src/stages/` | Specialized static analysis modules and shared `stage-utils.ts` layer |
 ---
 
 ## <span style="color:#00FF7F;">🛠️ Build & Test</span>
