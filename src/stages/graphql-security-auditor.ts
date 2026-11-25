@@ -21,17 +21,17 @@ const GRAPHQL_SECURITY_RULES: GraphqlSecurityRule[] = [
     id: "MANINY-GQL-001",
     severity: "high",
     category: "code-pattern",
-    title: "Interpolated template expression inside GraphQL query or gql tag",
-    regex: /\b(gql|graphql)\b[^\r\n]*`[^`]*\$\{[^}]+\}[^`]*`/i,
-    description: "Use strongly typed GraphQL variables instead of interpolating dynamic values into query or mutation strings.",
+    title: "Interpolated template or dynamic input passed to GraphQL builder or execution call",
+    regex: /\b(buildSchema|graphql|makeExecutableSchema)\s*\([^\r\n)]*(`[^`]*\$\{[^}]+\}[^`]*`|\b(req\.body|req\.query)\b)/i,
+    description: "Avoid constructing GraphQL schemas or executing queries from unvalidated client inputs or interpolated template strings.",
   },
   {
     id: "MANINY-GQL-002",
     severity: "medium",
     category: "code-pattern",
-    title: "GraphQL server or handler setup without visible depth or query complexity guard on line",
-    regex: /\b(graphqlHTTP|createYoga|ApolloServer)\s*\([^\r\n)]*(?![^\r\n]*(depthLimit|maxDepth|validationRules|complexity))/i,
-    description: "Enforce query depth limits, complexity analysis, and introspection controls on GraphQL endpoints.",
+    title: "GraphQL introspection explicitly enabled without environment guard on line",
+    regex: /\bintrospection\s*:\s*true\b[^\r\n;,)]*(?![^\r\n]*(NODE_ENV|production|development))/i,
+    description: "Disable GraphQL schema introspection in production or gate it explicitly behind environment checks.",
   },
 ];
 
