@@ -72,6 +72,7 @@ import { runLdapInjectionAuditor } from "./stages/ldap-injection-auditor.js";
 import { runNosqlInjectionAuditor } from "./stages/nosql-injection-auditor.js";
 import { runTemplateInjectionAuditor } from "./stages/template-injection-auditor.js";
 import { runArchiveTempAuditor } from "./stages/archive-temp-auditor.js";
+import { runQueueEventAuditor } from "./stages/queue-event-auditor.js";
 import { runWebsocketSecurityAuditor } from "./stages/websocket-security-auditor.js";
 import { runRaceConditionAuditor } from "./stages/race-condition-auditor.js";
 import { runTimingSidechannelAuditor } from "./stages/timing-sidechannel-auditor.js";
