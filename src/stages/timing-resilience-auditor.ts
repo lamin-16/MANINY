@@ -61,6 +61,10 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isTimingResRuleLine(lineText: string): boolean {
+  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
+}
+
 export async function runTimingResilienceAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -85,7 +89,7 @@ export async function runTimingResilienceAuditor(policy: ManinyPolicy): Promise<
       }
 
       for (const rule of TIMING_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isTimingResRuleLine(lineText) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makeTmpFindingId(rule.id, relFile, lineNum),

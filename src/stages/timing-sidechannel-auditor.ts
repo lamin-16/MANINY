@@ -54,6 +54,10 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isTimingSideRuleLine(lineText: string): boolean {
+  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
+}
+
 export async function runTimingSidechannelAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -68,7 +72,7 @@ export async function runTimingSidechannelAuditor(policy: ManinyPolicy): Promise
       const trimmed = lineText.trim();
       if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of TIMING_SIDECHANNEL_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isTimingSideRuleLine(lineText) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makeTscFindingId(rule.id, relFile, lineNum),
