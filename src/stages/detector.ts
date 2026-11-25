@@ -53,7 +53,7 @@ function isCommentOrRegexPatternLine(trimmedLine: string): boolean {
 }
 
 function isRuleMetadataLine(trimmed: string): boolean {
-  return /^(title|description)\s*:/.test(trimmed);
+  return /^(title|description|regex)\s*:/.test(trimmed);
 }
 
 async function walkWorkspaceFiles(dirPath: string, rootDir: string): Promise<string[]> {
