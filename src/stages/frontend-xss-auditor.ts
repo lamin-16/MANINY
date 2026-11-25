@@ -61,6 +61,11 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isXssRuleDefinitionLine(lineText: string): boolean {
+  if (/^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(")) return true;
+  return false;
+}
+
 export async function runFrontendXssAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -85,7 +90,7 @@ export async function runFrontendXssAuditor(policy: ManinyPolicy): Promise<Findi
       }
 
       for (const rule of XSS_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isXssRuleDefinitionLine(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeXssFindingId(rule.id, relFile, lineNum),

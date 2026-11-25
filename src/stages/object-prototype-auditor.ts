@@ -61,6 +61,11 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isProtoRuleOrGuardLine(lineText: string): boolean {
+  if (/^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(")) return true;
+  return /\b(safeKey|rawKey\s*===\s*["']__proto__)\b/.test(lineText);
+}
+
 export async function runObjectPrototypeAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -85,7 +90,7 @@ export async function runObjectPrototypeAuditor(policy: ManinyPolicy): Promise<F
       }
 
       for (const rule of OBJECT_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isProtoRuleOrGuardLine(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeObjFindingId(rule.id, relFile, lineNum),
