@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="100%" height="320">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF0A8"/>
+      <stop offset="45%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#8C6512"/>
+    </linearGradient>
+    <linearGradient id="emberGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF5A1F"/>
+      <stop offset="55%" stop-color="#FFD166"/>
+      <stop offset="100%" stop-color="#FFF3B0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="320" rx="18" fill="#090B0E"/>
+  <rect x="10" y="10" width="1180" height="300" rx="14" fill="none" stroke="url(#goldGrad)" stroke-width="2.5"/>
+
+  <!-- Dragon silhouette & flame crest -->
+  <g transform="translate(80, 42)">
+    <path d="M155 32 L128 8 L136 46 L96 28 L114 68 L62 62 L98 94 L42 118 L92 132 L54 172 L112 162 L132 214 L158 166 L208 186 L184 140 L236 122 L184 102 L214 58 L166 76 Z" fill="url(#emberGrad)" opacity="0.92"/>
+    <path d="M148 48 C115 52, 86 78, 84 114 C82 146, 102 174, 132 188 L122 212 L152 194 C178 192, 202 172, 210 144 C216 122, 206 96, 186 80 L196 52 L168 64 C162 56, 155 50, 148 48 Z" fill="#0E1117" stroke="url(#goldGrad)" stroke-width="3.5"/>
+    <polygon points="154,96 174,108 154,120 134,108" fill="#FFD700"/>
+    <circle cx="154" cy="108" r="5" fill="#090B0E"/>
+  </g>
+
+  <!-- Title & Tagline -->
+  <text x="355" y="128" fill="url(#goldGrad)" font-family="monospace, sans-serif" font-size="68" font-weight="800" letter-spacing="10">MANINY</text>
+  <text x="358" y="174" fill="#F5F7FA" font-family="sans-serif" font-size="22" font-weight="600">Multi-Stage Detection, Safe Verification, Controlled Remediation &amp; Rollback</text>
+  <text x="358" y="214" fill="#D4AF37" font-family="monospace, sans-serif" font-size="16">DETECT  -&gt;  VERIFY  -&gt;  SIMULATE  -&gt;  FIX  -&gt;  DEFEND &amp; ROLLBACK</text>
+
+  <line x1="358" y1="238" x2="1120" y2="238" stroke="#D4AF37" stroke-opacity="0.45" stroke-width="1.5"/>
+  <text x="358" y="268" fill="#A1A8B3" font-family="monospace, sans-serif" font-size="15">TypeScript Strict  |  SARIF 2.1.0 &amp; JSON  |  Workspace Sandboxed  |  Auto Rollback</text>
+</svg>
