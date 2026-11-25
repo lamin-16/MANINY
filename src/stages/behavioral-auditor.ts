@@ -61,6 +61,10 @@ async function collectCodeFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isBehavioralRuleDefLine(lineText: string): boolean {
+  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
+}
+
 export async function runBehavioralAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectCodeFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -85,7 +89,7 @@ export async function runBehavioralAuditor(policy: ManinyPolicy): Promise<Findin
       }
 
       for (const rule of BEHAVIORAL_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isBehavioralRuleDefLine(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeBehFindingId(rule.id, relFile, lineNum),

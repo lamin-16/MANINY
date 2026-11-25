@@ -61,6 +61,10 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isRegexRuleDefLine(lineText: string): boolean {
+  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
+}
+
 export async function runRegexAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -85,7 +89,7 @@ export async function runRegexAuditor(policy: ManinyPolicy): Promise<Finding[]> 
       }
 
       for (const rule of REGEX_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isRegexRuleDefLine(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeRgxFindingId(rule.id, relFile, lineNum),

@@ -61,6 +61,10 @@ async function collectFiles(dir: string, root: string): Promise<string[]> {
   return results;
 }
 
+function isModuleRuleDefLine(lineText: string): boolean {
+  return /^\s*(title|description|regex)\s*:/.test(lineText) || lineText.includes("new RegExp(");
+}
+
 export async function runModuleLoadAuditor(policy: ManinyPolicy): Promise<Finding[]> {
   const findings: Finding[] = [];
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
@@ -85,7 +89,7 @@ export async function runModuleLoadAuditor(policy: ManinyPolicy): Promise<Findin
       }
 
       for (const rule of MODULE_LOAD_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!isModuleRuleDefLine(lineText) && (rule.regex.test(lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makeModFindingId(rule.id, relFile, lineNum),
