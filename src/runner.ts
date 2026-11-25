@@ -83,6 +83,7 @@ import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.j
 import { runOauthStateAuditor } from "./stages/oauth-state-auditor.js";
 import { runTenantIsolationAuditor } from "./stages/tenant-isolation-auditor.js";
 import { runFeatureFlagAuditor } from "./stages/feature-flag-auditor.js";
+import { runNotificationInjectionAuditor } from "./stages/notification-injection-auditor.js";
 import { runUploadSafetyAuditor } from "./stages/upload-safety-auditor.js";
 import { runOpenRedirectAuditor } from "./stages/open-redirect-auditor.js";
 import { runCorsPolicyAuditor } from "./stages/cors-policy-auditor.js";
