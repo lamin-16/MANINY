@@ -54,6 +54,7 @@ import { runSearchQueryAuditor } from "./stages/search-query-auditor.js";
 import { runMediaUploadAuditor } from "./stages/media-upload-auditor.js";
 import { runIndexEngineAuditor } from "./stages/index-engine-auditor.js";
 import { runExportReportAuditor } from "./stages/export-report-auditor.js";
+import { runExternalConnectorAuditor } from "./stages/external-connector-auditor.js";
 import { runMassAssignmentAuditor } from "./stages/mass-assignment-auditor.js";
 import { runSecretExposureAuditor } from "./stages/secret-exposure-auditor.js";
 import { runAccessControlAuditor } from "./stages/access-control-auditor.js";
