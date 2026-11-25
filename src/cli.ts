@@ -116,6 +116,7 @@ function parseArgs(argv: string[]): {
   summaryOnly: boolean;
   countBySeverity: boolean;
   statusFilter?: string;
+  groupByRule: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -145,6 +146,7 @@ function parseArgs(argv: string[]): {
   let summaryOnly = false;
   let countBySeverity = false;
   let statusFilter: string | undefined;
+  let groupByRule = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -159,10 +161,12 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--status" && next) {
+    if (arg === "--group-by-rule") {
+      groupByRule = true;
+    } else if (arg === "--status" && next) {
       statusFilter = next.trim();
       i++;
-    } else if (arg === "--status <st> --count-by-severity") {
+    } else if (arg === "--group-by-rule --status <st> --count-by-severity") {
       countBySeverity = true;
     } else if (arg === "--count-by-severity --summary-only") {
       summaryOnly = true;
@@ -290,6 +294,7 @@ function parseArgs(argv: string[]): {
     summaryOnly,
     countBySeverity,
     ...(statusFilter ? { statusFilter } : {}),
+    groupByRule,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -406,6 +411,13 @@ async function main(): Promise<void> {
       }
     : undefined;
 
+  const byRule = args.groupByRule
+    ? report.findings.reduce<Record<string, number>>((acc, f: Finding) => {
+        acc[f.ruleId] = (acc[f.ruleId] ?? 0) + 1;
+        return acc;
+      }, {})
+    : undefined;
+
   const complianceSummary = args.compliance
     ? buildComplianceSummary(report, Boolean(audit))
     : undefined;
@@ -419,6 +431,7 @@ async function main(): Promise<void> {
           mode: report.mode,
           summary: report.summary,
           ...(bySeverity ? { bySeverity } : {}),
+          ...(byRule ? { byRule } : {}),
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
           ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
