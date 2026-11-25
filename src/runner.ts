@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode } from "./core/types.js";
 import { runSafeLiveHttpProbes } from "./core/live-probe-runner.js";
+import { runHttpAuthSessionProbes } from "./core/http-auth-session-prober.js";
+import { assessExploitabilityChains } from "./core/exploit-chain-verifier.js";
 import { formatSarifReport } from "./core/reporter.js";
 import { runDetector } from "./stages/detector.js";
 import { runDependencyAuditor } from "./stages/dependency-auditor.js";

@@ -1,3 +1,4 @@
+import { assessExploitabilityChains } from "./core/exploit-chain-verifier.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
@@ -269,12 +270,14 @@ function parseArgs(argv: string[]): {
   topDistinctXssRank: boolean;
   topDistinctAuditLogRank: boolean;
   topDistinctVerifiedRank: boolean;
+  topExploitabilityRank: boolean;
   reportFormat: ReportFormat;
 } {
   let mode: RunMode = "pipeline";
   let workspace = process.cwd();
   const allowHosts: string[] = [];
   const targetUrls: string[] = [];
+  let topExploitabilityRank = false;
   let topDistinctVerifiedRank = false;
   let topDistinctAuditLogRank = false;
   let topDistinctXssRank = false;
@@ -448,7 +451,9 @@ function parseArgs(argv: string[]): {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
-    if (arg === "--top-distinct-verified-rank") {
+    if (arg === "--top-exploitability-rank") {
+      topExploitabilityRank = true;
+    } else if (arg === "--top-distinct-verified-rank") {
       topDistinctVerifiedRank = true;
     } else if (arg === "--top-distinct-audit-log-rank") {
       topDistinctAuditLogRank = true;
@@ -618,6 +623,7 @@ function parseArgs(argv: string[]): {
   }
 
   return {
+    topExploitabilityRank,
     topDistinctVerifiedRank,
     topDistinctAuditLogRank,
     topDistinctXssRank,
@@ -1957,6 +1963,13 @@ mode: args.mode,
     );
     return;
   }
+
+  if (args.topExploitabilityRank) {
+    const ranked = assessExploitabilityChains(report.findings);
+    console.log(JSON.stringify({ topExploitabilityRank: ranked }, null, 2));
+    return;
+  }
+
 
 
 
