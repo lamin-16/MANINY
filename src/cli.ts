@@ -135,6 +135,7 @@ function parseArgs(argv: string[]): {
   countByRuleFile: boolean;
   countBySeverityFile: boolean;
   countByCategorySeverity: boolean;
+  countByStatusSeverity: boolean;
   statusFilter?: string;
   groupByRule: boolean;
   groupByFile: boolean;
@@ -200,6 +201,7 @@ function parseArgs(argv: string[]): {
   let countByRuleFile = false;
   let countBySeverityFile = false;
   let countByCategorySeverity = false;
+  let countByStatusSeverity = false;
   let statusFilter: string | undefined;
   let groupByRule = false;
   let groupByFile = false;
@@ -247,7 +249,7 @@ function parseArgs(argv: string[]): {
     } else if (arg === "--status" && next) {
       statusFilter = next.trim();
       i++;
-    } else if (arg === "--group-by-rule --status <st> --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
+    } else if (arg === "--group-by-rule --status <st> --count-by-status-severity --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
       countBySeverity = true;
     } else if (arg === "--count-by-severity --summary-only") {
       summaryOnly = true;
@@ -405,6 +407,7 @@ function parseArgs(argv: string[]): {
     countByRuleFile,
     countBySeverityFile,
     countByCategorySeverity,
+    countByStatusSeverity,
     ...(statusFilter ? { statusFilter } : {}),
     groupByRule,
     groupByFile,
