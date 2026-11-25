@@ -11,6 +11,7 @@ import { runCryptoAuditor } from "./stages/crypto-auditor.js";
 import { runProcessAuditor } from "./stages/process-auditor.js";
 import { runInputAuditor } from "./stages/input-auditor.js";
 import { runSecurityConfigAuditor } from "./stages/security-config-auditor.js";
+import { runFrontendXssAuditor } from "./stages/frontend-xss-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -60,6 +61,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       prcFindings,
       inpFindings,
       cfgFindings,
+      xssFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -70,6 +72,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runProcessAuditor(policy),
       runInputAuditor(policy),
       runSecurityConfigAuditor(policy),
+      runFrontendXssAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -82,6 +85,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...prcFindings,
       ...inpFindings,
       ...cfgFindings,
+      ...xssFindings,
     ];
   }
 

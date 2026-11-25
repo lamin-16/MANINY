@@ -112,6 +112,7 @@ function parseArgs(argv: string[]): {
   quiet: boolean;
   top?: number;
   ruleFilter?: string;
+  categoryFilter?: string;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -137,6 +138,7 @@ function parseArgs(argv: string[]): {
   let quiet = false;
   let top: number | undefined;
   let ruleFilter: string | undefined;
+  let categoryFilter: string | undefined;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -151,7 +153,10 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--rule" && next) {
+    if (arg === "--category" && next) {
+      categoryFilter = next.trim();
+      i++;
+    } else if (arg === "--rule" && next) {
       ruleFilter = next.trim();
       i++;
     } else if (arg === "--top" && next) {
@@ -268,6 +273,7 @@ function parseArgs(argv: string[]): {
     quiet,
     ...(top ? { top } : {}),
     ...(ruleFilter ? { ruleFilter } : {}),
+    ...(categoryFilter ? { categoryFilter } : {}),
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -284,7 +290,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --category <cat> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -348,6 +354,12 @@ async function main(): Promise<void> {
     skipWorkspaceScan: args.urlOnly,
     ...(args.reportBase ? { reportBasePath: args.reportBase } : {}),
   });
+
+  if (args.categoryFilter) {
+    const cf = args.categoryFilter.toLowerCase();
+    report.findings = report.findings.filter((f: Finding) => f.category.toLowerCase() === cf);
+    recomputeSummary(report);
+  }
 
   if (args.ruleFilter) {
     const rf = args.ruleFilter.toUpperCase();
