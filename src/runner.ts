@@ -69,6 +69,7 @@ import { runTemplateInjectionAuditor } from "./stages/template-injection-auditor
 import { runWebsocketSecurityAuditor } from "./stages/websocket-security-auditor.js";
 import { runRaceConditionAuditor } from "./stages/race-condition-auditor.js";
 import { runTimingSidechannelAuditor } from "./stages/timing-sidechannel-auditor.js";
+import { runResourceExhaustionAuditor } from "./stages/resource-exhaustion-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
 import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.js";
