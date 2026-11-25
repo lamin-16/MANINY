@@ -114,6 +114,7 @@ function parseArgs(argv: string[]): {
   ruleFilter?: string;
   excludeRule?: string;
   excludeSeverity?: string;
+  excludeCategory?: string;
   categoryFilter?: string;
   summaryOnly: boolean;
   countBySeverity: boolean;
@@ -151,6 +152,7 @@ function parseArgs(argv: string[]): {
   let ruleFilter: string | undefined;
   let excludeRule: string | undefined;
   let excludeSeverity: string | undefined;
+  let excludeCategory: string | undefined;
   let categoryFilter: string | undefined;
   let summaryOnly = false;
   let countBySeverity = false;
@@ -317,6 +319,7 @@ function parseArgs(argv: string[]): {
     ...(ruleFilter ? { ruleFilter } : {}),
     ...(excludeRule ? { excludeRule } : {}),
     ...(excludeSeverity ? { excludeSeverity } : {}),
+    ...(excludeCategory ? { excludeCategory } : {}),
     ...(categoryFilter ? { categoryFilter } : {}),
     summaryOnly,
     countBySeverity,
@@ -343,7 +346,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-severity <sev> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-category <cat> --exclude-severity <sev> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -417,6 +420,12 @@ async function main(): Promise<void> {
   if (args.categoryFilter) {
     const cf = args.categoryFilter.toLowerCase();
     report.findings = report.findings.filter((f: Finding) => f.category.toLowerCase() === cf);
+    recomputeSummary(report);
+  }
+
+  if (args.excludeCategory) {
+    const ec = args.excludeCategory.toLowerCase();
+    report.findings = report.findings.filter((f: Finding) => f.category.toLowerCase() !== ec);
     recomputeSummary(report);
   }
 

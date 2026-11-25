@@ -23,6 +23,7 @@ import { runObjectPrototypeAuditor } from "./stages/object-prototype-auditor.js"
 import { runAuthJwtAuditor } from "./stages/auth-jwt-auditor.js";
 import { runTimingResilienceAuditor } from "./stages/timing-resilience-auditor.js";
 import { runLogLeakAuditor } from "./stages/log-leak-auditor.js";
+import { runNetworkFetchAuditor } from "./stages/network-fetch-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -84,6 +85,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       authFindings,
       tmpFindings,
       logFindings,
+      netFetchFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -106,6 +108,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runAuthJwtAuditor(policy),
       runTimingResilienceAuditor(policy),
       runLogLeakAuditor(policy),
+      runNetworkFetchAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -130,6 +133,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...authFindings,
       ...tmpFindings,
       ...logFindings,
+      ...netFetchFindings,
     ];
   }
 
