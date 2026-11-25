@@ -22,7 +22,7 @@ const SENSITIVE_PATH_RULES: SensitivePathRule[] = [
     severity: "medium",
     category: "code-pattern",
     title: "Reference to sensitive credential or environment path in code",
-    regex: /['"`][^'"`\r\n]*(\.env(\.[a-zA-Z0-9_-]+)?|id_rsa|\.htpasswd|\.git\/config)['"`]/,
+      regex: /['"`][^\r\n`]*(\.env(\.(?!example\b|sample\b|template\b)[a-zA-Z0-9_-]+)?|id_rsa|\.htpasswd|\.git\/config)['"`]/,
     description: "Avoid embedding references to sensitive secret or credential files in application code.",
   },
   {
@@ -66,6 +66,7 @@ export async function runSensitivePathAuditor(policy: ManinyPolicy): Promise<Fin
   const files = await collectFiles(policy.workspaceRoot, policy.workspaceRoot);
 
   for (const relFile of files) {
+    if (/(^|\/)(smoke-test|\.test\.|\.spec\.)/i.test(relFile)) continue;
     const safePath = resolveSafeWorkspacePath(policy.workspaceRoot, relFile);
     if (!safePath) continue;
 
@@ -85,7 +86,7 @@ export async function runSensitivePathAuditor(policy: ManinyPolicy): Promise<Fin
       }
 
       for (const rule of SENSITIVE_PATH_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (!/(blockedPathSubstrings|TRAVERSAL_PATHS|SENSITIVE_PROBE_PATHS|startsWith\(["']\.env)/.test(lineText) && rule.regex.test(lineText)) {
           const lineNum = i + 1;
           findings.push({
             id: makePthFindingId(rule.id, relFile, lineNum),

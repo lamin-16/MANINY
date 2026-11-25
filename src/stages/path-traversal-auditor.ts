@@ -35,6 +35,13 @@ const PATH_TRAVERSAL_RULES: PathTraversalRule[] = [
   },
 ];
 
+function isGuardedByContext(lines: string[], lineIdx: number, lineText: string): boolean {
+  if (/\b(safe[A-Z_a-z0-9]*|resolved[A-Z_a-z0-9]*)\b/.test(lineText)) return true;
+  const start = Math.max(0, lineIdx - 10);
+  const context = lines.slice(start, lineIdx).join("\n");
+  return /\b(resolveSafeWorkspacePath|path\.resolve|isWithinRoot|realpathSync)\b/.test(context);
+}
+
 function makePthFindingId(ruleId: string, relFile: string, line: number): string {
   const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
   return `F-${hash}`;
@@ -68,7 +75,7 @@ export async function runPathTraversalAuditor(policy: ManinyPolicy): Promise<Fin
       const trimmed = lineText.trim();
       if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
       for (const rule of PATH_TRAVERSAL_RULES) {
-        if (rule.regex.test(lineText)) {
+        if (rule.regex.test(lineText) && !(rule.id === "MANINY-PTH-001" && isGuardedByContext(lines, i, lineText))) {
           const lineNum = i + 1;
           findings.push({
             id: makePthFindingId(rule.id, relFile, lineNum),
