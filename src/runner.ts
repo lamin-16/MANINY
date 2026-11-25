@@ -51,6 +51,7 @@ import { runPrototypePollutionAuditor } from "./stages/prototype-pollution-audit
 import { runSqlInjectionAuditor } from "./stages/sql-injection-auditor.js";
 import { runXssDomAuditor } from "./stages/xss-dom-auditor.js";
 import { runRedosPatternAuditor } from "./stages/redos-pattern-auditor.js";
+import { runLdapInjectionAuditor } from "./stages/ldap-injection-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -141,6 +142,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       sqlInjFindings,
       xssDomFindings,
       rdxPatFindings,
+      ldpInjFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -192,6 +194,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runSqlInjectionAuditor(policy),
       runXssDomAuditor(policy),
       runRedosPatternAuditor(policy),
+      runLdapInjectionAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -245,6 +248,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...sqlInjFindings,
       ...xssDomFindings,
       ...rdxPatFindings,
+      ...ldpInjFindings,
     ];
   }
 
