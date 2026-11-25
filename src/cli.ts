@@ -110,6 +110,7 @@ function parseArgs(argv: string[]): {
   showVersion: boolean;
   showHelp: boolean;
   quiet: boolean;
+  top?: number;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -133,6 +134,7 @@ function parseArgs(argv: string[]): {
   let showVersion = false;
   let showHelp = false;
   let quiet = false;
+  let top: number | undefined;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -147,7 +149,11 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--quiet" || arg === "-q") {
+    if (arg === "--top" && next) {
+      const n = Number(next);
+      if (Number.isInteger(n) && n > 0) top = n;
+      i++;
+    } else if (arg === "--quiet" || arg === "-q") {
       quiet = true;
     } else if (arg === "--help" || arg === "-h") {
       showHelp = true;
@@ -255,6 +261,7 @@ function parseArgs(argv: string[]): {
     showVersion,
     showHelp,
     quiet,
+    ...(top ? { top } : {}),
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -271,7 +278,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -358,7 +365,7 @@ async function main(): Promise<void> {
           ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
           ...(args.failOn ? { gate: { failOn: args.failOn, breached: gateFailed } } : {}),
-          items: report.findings.map((f) => ({
+          items: (args.top ? report.findings.slice(0, args.top) : report.findings).map((f) => ({
             id: f.id,
             ruleId: f.ruleId,
             severity: f.severity,
