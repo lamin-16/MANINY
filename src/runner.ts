@@ -26,6 +26,7 @@ import { runLogLeakAuditor } from "./stages/log-leak-auditor.js";
 import { runNetworkFetchAuditor } from "./stages/network-fetch-auditor.js";
 import { runStorageCacheAuditor } from "./stages/storage-cache-auditor.js";
 import { runCorsHeadersAuditor } from "./stages/cors-headers-auditor.js";
+import { runTemplateHtmlAuditor } from "./stages/template-html-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -90,6 +91,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       netFetchFindings,
       stoCacheFindings,
       corsFindings,
+      tplHtmlFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -115,6 +117,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runNetworkFetchAuditor(policy),
       runStorageCacheAuditor(policy),
       runCorsHeadersAuditor(policy),
+      runTemplateHtmlAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -142,6 +145,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...netFetchFindings,
       ...stoCacheFindings,
       ...corsFindings,
+      ...tplHtmlFindings,
     ];
   }
 
