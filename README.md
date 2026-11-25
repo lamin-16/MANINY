@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80" alt="MANINY DIGITAL Wolf in Snow" width="780" />
+<img src="./assets/maniny-wolf.png" alt="MANINY DIGITAL Snow Wolf" width="620" />
 
 # <span style="font-size:48px;font-weight:900;letter-spacing:4px;"><span style="color:#FFD700;">M</span><span style="color:#00FF7F;">A</span><span style="color:#FF7A00;">N</span><span style="color:#FFD700;">I</span><span style="color:#00FF7F;">N</span><span style="color:#FF7A00;">Y</span> <span style="color:#00FF7F;">D</span><span style="color:#FFD700;">I</span><span style="color:#00FF7F;">G</span><span style="color:#FF7A00;">I</span><span style="color:#FFD700;">T</span><span style="color:#00FF7F;">A</span><span style="color:#FF7A00;">L</span></span>
 
-### <span style="color:#FFD700;">Wolf in the Snow • Offensive Security, Vulnerability Discovery & Exploit Verification</span>
+### <span style="color:#FFD700;">Offensive Security, Vulnerability Discovery & Real Exploit Verification</span>
 <span style="color:#FFD700;">● Bright Gold (#FFD700)</span> · <span style="color:#00FF7F;">● Spring Green (#00FF7F)</span> · <span style="color:#FF7A00;">● Orange (#FF7A00)</span>
 
 </div>
