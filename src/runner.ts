@@ -105,6 +105,7 @@ import { runSensitiveDataAuditor } from "./stages/sensitive-data-auditor.js";
 import { runTokenEntropyAuditor } from "./stages/token-entropy-auditor.js";
 import { runCorsPolicyAuditor } from "./stages/cors-policy-auditor.js";
 import { runCacheControlAuditor } from "./stages/cache-control-auditor.js";
+import { runIntegritySignatureAuditor } from "./stages/integrity-signature-auditor.js";
 import { runCookieSecurityAuditor } from "./stages/cookie-security-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
