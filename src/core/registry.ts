@@ -63,6 +63,22 @@ registerRules([
     verifyLine: (line) => /\b(exec|execSync)\s*\(/.test(line),
   },
   {
+    ruleId: "MANINY-CODE-004",
+    title: "Direct HTML sink assignment (innerHTML / outerHTML)",
+    category: "code-pattern",
+    severity: "medium",
+    description: "Detects direct innerHTML or outerHTML assignment that may allow HTML injection if untrusted.",
+    detectLine: (line) => /\b(?:innerHTML|outerHTML)\s*=/.test(line),
+    verifyLine: (line) => /\b(?:innerHTML|outerHTML)\s*=/.test(line),
+    fixLine: (line) => {
+      const nextLine = line.replace(
+        /\b(?:innerHTML|outerHTML)\s*=/g,
+        "textContent ="
+      );
+      return { changed: nextLine !== line, nextLine };
+    },
+  },
+  {
     ruleId: "MANINY-HTTP-001",
     title: "TLS certificate verification disabled (rejectUnauthorized: false)",
     category: "http-hardening",
