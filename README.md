@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/dragon-banner.svg" alt="MANINY Digital Dragon Banner" width="100%" />
+![MANINY Digital Dragon Banner](./assets/dragon-banner.svg)
 
 <br />
 
