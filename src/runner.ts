@@ -42,6 +42,7 @@ import { runFileUploadAuditor } from "./stages/file-upload-auditor.js";
 import { runOpenRedirectCorsAuditor } from "./stages/open-redirect-cors-auditor.js";
 import { runJwtTokenAuditor } from "./stages/jwt-token-auditor.js";
 import { runGraphqlSecurityAuditor } from "./stages/graphql-security-auditor.js";
+import { runMassAssignmentAuditor } from "./stages/mass-assignment-auditor.js";
 import { runSsrfNetworkAuditor } from "./stages/ssrf-network-auditor.js";
 import { runCspHeadersAuditor } from "./stages/csp-headers-auditor.js";
 import { runPathTraversalAuditor } from "./stages/path-traversal-auditor.js";
