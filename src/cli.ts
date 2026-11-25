@@ -107,6 +107,7 @@ function parseArgs(argv: string[]): {
   jsonCompact: boolean;
   compliance: boolean;
   stats: boolean;
+  showVersion: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -127,6 +128,7 @@ function parseArgs(argv: string[]): {
   let jsonCompact = false;
   let compliance = false;
   let stats = false;
+  let showVersion = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -141,7 +143,9 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--list-rules") {
+    if (arg === "--version" || arg === "-v") {
+      showVersion = true;
+    } else if (arg === "--list-rules") {
       shouldListRules = true;
     } else if (arg === "--stats") {
       stats = true;
@@ -240,6 +244,7 @@ function parseArgs(argv: string[]): {
     jsonCompact,
     compliance,
     stats,
+    showVersion,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -254,6 +259,11 @@ function parseArgs(argv: string[]): {
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args.showVersion) {
+    console.log("MANINY v0.2.0");
+    return;
+  }
 
   if (args.stats) {
     const s = await collectWorkspaceStats(args.workspace);

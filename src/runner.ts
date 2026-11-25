@@ -6,6 +6,7 @@ import { runDependencyAuditor } from "./stages/dependency-auditor.js";
 import { runEnvAuditor } from "./stages/env-auditor.js";
 import { runBehavioralAuditor } from "./stages/behavioral-auditor.js";
 import { runLockfileAuditor } from "./stages/lockfile-auditor.js";
+import { runPermissionAuditor } from "./stages/permission-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -45,13 +46,21 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
   let findings = await runDetector(policy, targetUrls, { skipWorkspaceScan });
 
   if (!skipWorkspaceScan) {
-    const [depFindings, envFindings, behFindings, lockFindings] = await Promise.all([
+    const [depFindings, envFindings, behFindings, lockFindings, permFindings] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
       runBehavioralAuditor(policy),
       runLockfileAuditor(policy),
+      runPermissionAuditor(policy),
     ]);
-    findings = [...findings, ...depFindings, ...envFindings, ...behFindings, ...lockFindings];
+    findings = [
+      ...findings,
+      ...depFindings,
+      ...envFindings,
+      ...behFindings,
+      ...lockFindings,
+      ...permFindings,
+    ];
   }
 
   if (mode === "verify" || mode === "pipeline") {
