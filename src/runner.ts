@@ -22,6 +22,7 @@ import { runReverseProxyAuditor } from "./stages/reverse-proxy-auditor.js";
 import { runSessionStorageAuditor } from "./stages/session-storage-auditor.js";
 import { runTlsCertificateAuditor } from "./stages/tls-certificate-auditor.js";
 import { runAuditTrailAuditor } from "./stages/audit-trail-auditor.js";
+import { runCliSecurityAuditor } from "./stages/cli-security-auditor.js";
 import { runCommandExecutionAuditor } from "./stages/command-execution-auditor.js";
 import { runSerializationAuditor } from "./stages/serialization-auditor.js";
 import { runMessagingAuditor } from "./stages/messaging-auditor.js";
