@@ -1,5 +1,6 @@
 import { buildEliteAttackMatrix } from "./core/elite-attack-engine.js";
 import { assessExploitabilityChains, buildAttackVerificationReport } from "./core/exploit-chain-verifier.js";
+import { correlateHybridChains } from "./core/hybrid-chain-correlator.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Finding, ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
@@ -1986,7 +1987,8 @@ mode: args.mode,
 
   if (args.attackReport) {
     const summaryReport = buildAttackVerificationReport(report.findings);
-    console.log(JSON.stringify({ attackReport: summaryReport }, null, 2));
+    const hybridChains = correlateHybridChains(report.findings);
+    console.log(JSON.stringify({ attackReport: summaryReport, hybridChains }, null, 2));
     return;
   }
 
