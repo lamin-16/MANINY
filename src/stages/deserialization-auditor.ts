@@ -19,19 +19,19 @@ interface DeserializationRule {
 const DESERIALIZATION_RULES: DeserializationRule[] = [
   {
     id: "MANINY-DSR-001",
-    severity: "medium",
+    severity: "high",
     category: "code-pattern",
-    title: "Interpolated template literal passed to JSON.parse",
-    regex: /\bJSON\.parse\s*\(\s*`[^`]*\$\{/,
-    description: "Avoid passing dynamically interpolated strings directly to JSON.parse; validate input schemas and wrap parsing safely.",
+    title: "Untrusted request input or template expression passed directly to deserializer",
+    regex: /\b(JSON\.parse|deserialize|unserialize)\s*\(\s*([^\r\n)]*\b(req\.body|req\.query|req\.params)\b|`[^`]*\$\{[^}]+\}[^`]*`)/i,
+    description: "Validate raw payloads and enforce strict schemas before parsing or deserializing untrusted input data.",
   },
   {
     id: "MANINY-DSR-002",
-    severity: "high",
+    severity: "medium",
     category: "code-pattern",
-    title: "Potentially unsafe YAML/object deserialization call",
-    regex: /\b(yaml\.load|unserialize|deserialize)\s*\(/i,
-    description: "Use schema-safe parsers (such as yaml.safeLoad or strict Zod/JSON validation) when ingesting external payloads.",
+    title: "YAML loader invoked without visible safe schema restriction on line",
+    regex: /\b(yaml\.load|loadYaml)\s*\([^\r\n)]*(?![^\r\n]*(FAILSAFE_SCHEMA|CORE_SCHEMA|JSON_SCHEMA|safeLoad))/i,
+    description: "Restrict YAML parsing to safe schemas (such as FAILSAFE_SCHEMA or CORE_SCHEMA) to prevent unsafe tag execution.",
   },
 ];
 
