@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ManinyPolicy, ReportFormat, RunMode, Severity } from "./core/types.js";
+import { ManinyPolicy, PipelineReport, ReportFormat, RunMode, Severity } from "./core/types.js";
 import { listRules } from "./core/registry.js";
 import { executeManiny } from "./runner.js";
 
@@ -10,6 +10,19 @@ const SEVERITY_RANK: Record<Severity, number> = {
   high: 3,
   critical: 4,
 };
+
+function recomputeSummary(report: PipelineReport): void {
+  const f = report.findings;
+  report.summary = {
+    total: f.length,
+    detected: f.filter((x) => x.status === "detected").length,
+    verifiedExploitable: f.filter((x) => x.status === "verified_exploitable").length,
+    needsReview: f.filter((x) => x.status === "needs_review").length,
+    patched: f.filter((x) => x.status === "patched").length,
+    verifiedFixed: f.filter((x) => x.status === "verified_fixed").length,
+    rolledBack: f.filter((x) => x.status === "rolled_back").length,
+  };
+}
 
 function parseArgs(argv: string[]): {
   mode: RunMode;
@@ -135,6 +148,7 @@ async function main(): Promise<void> {
   if (args.minSeverity) {
     const threshold = SEVERITY_RANK[args.minSeverity];
     report.findings = report.findings.filter((f) => SEVERITY_RANK[f.severity] >= threshold);
+    recomputeSummary(report);
   }
 
   console.log(JSON.stringify(report, null, 2));
