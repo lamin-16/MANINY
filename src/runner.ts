@@ -115,6 +115,7 @@ import { runAutoUpdateAuditor } from "./stages/auto-update-auditor.js";
 import { runSubdomainTakeoverAuditor } from "./stages/subdomain-takeover-auditor.js";
 import { runKmsKeyManagementAuditor } from "./stages/kms-key-management-auditor.js";
 import { runSecretVaultAuditor } from "./stages/secret-vault-auditor.js";
+import { runQuotaGovernanceAuditor } from "./stages/quota-governance-auditor.js";
 import { runCsrfProtectionAuditor } from "./stages/csrf-protection-auditor.js";
 import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
