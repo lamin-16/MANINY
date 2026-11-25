@@ -58,6 +58,7 @@ import { runWebhookSignatureAuditor } from "./stages/webhook-signature-auditor.j
 import { runUploadSafetyAuditor } from "./stages/upload-safety-auditor.js";
 import { runOpenRedirectAuditor } from "./stages/open-redirect-auditor.js";
 import { runCorsPolicyAuditor } from "./stages/cors-policy-auditor.js";
+import { runCookieSecurityAuditor } from "./stages/cookie-security-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -155,6 +156,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       uplSafFindings,
       opnRdrFindings,
       crsPolFindings,
+      cokSecFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -213,6 +215,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runUploadSafetyAuditor(policy),
       runOpenRedirectAuditor(policy),
       runCorsPolicyAuditor(policy),
+      runCookieSecurityAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -273,6 +276,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...uplSafFindings,
       ...opnRdrFindings,
       ...crsPolFindings,
+      ...cokSecFindings,
     ];
   }
 
