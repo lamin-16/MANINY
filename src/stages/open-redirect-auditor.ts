@@ -19,19 +19,19 @@ interface OpenRedirectRule {
 const OPEN_REDIRECT_RULES: OpenRedirectRule[] = [
   {
     id: "MANINY-RDR-001",
-    severity: "medium",
+    severity: "high",
     category: "code-pattern",
-    title: "Interpolated template literal in redirect call or Location header",
-    regex: /\b(redirect|res\.redirect|Location)\b[^\r\n]*`[^`]*\$\{[^}]+\}[^`]*`/i,
-    description: "Validate redirect targets against same-origin or relative-path rules before issuing redirects or setting Location headers.",
+    title: "Request input or interpolated template passed to redirect call without visible path/host check",
+    regex: /\b(res\.redirect|redirect|router\.push|router\.replace)\s*\(\s*([^\r\n)]*\b(req\.query|req\.body|req\.params)\b|`[^`]*\$\{[^}]+\}[^`]*`)[^\r\n)]*(?![^\r\n]*(startsWith|allowedHosts|safeUrl|allowlist))/i,
+    description: "Validate redirect targets to ensure they resolve to safe relative paths or explicitly allowlisted origins before redirecting.",
   },
   {
     id: "MANINY-RDR-002",
-    severity: "low",
+    severity: "medium",
     category: "code-pattern",
-    title: "Redirect target variable used without explicit safe-path check on line",
-    regex: /\b(redirect|navigate|router\.push)\s*\([^\r\n)]*\b(returnTo|nextUrl|redirectUrl|callbackUrl)\b[^\r\n)]*(?![^\r\n]*(startsWith\(['"]\/['"]\)|isSafeRedirect|allowedOrigins))/i,
-    description: "Ensure redirect parameters are restricted to safe relative paths or allowlisted hosts to prevent open redirects.",
+    title: "Dynamic or interpolated value assigned or passed to browser location navigation",
+    regex: /\b(window\.location|location\.href|location\.assign|location\.replace)\b[^\r\n;,)]*(=|\()\s*(`[^`]*\$\{[^}]+\}[^`]*`|[A-Za-z_$][A-Za-z0-9_$.]*)/i,
+    description: "Avoid assigning unvalidated variables or template literals directly to location navigation sinks.",
   },
 ];
 
