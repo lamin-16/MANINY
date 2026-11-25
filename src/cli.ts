@@ -121,6 +121,7 @@ function parseArgs(argv: string[]): {
   groupByCategory: boolean;
   groupByStatus: boolean;
   groupBySeverity: boolean;
+  sortBy?: "severity" | "line" | "file";
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -155,6 +156,7 @@ function parseArgs(argv: string[]): {
   let groupByCategory = false;
   let groupByStatus = false;
   let groupBySeverity = false;
+  let sortBy: "severity" | "line" | "file" | undefined;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -169,7 +171,10 @@ function parseArgs(argv: string[]): {
     const arg = argv[i] ?? "";
     const next = argv[i + 1];
 
-    if (arg === "--group-by-severity") {
+    if (arg === "--sort-by" && next && (next === "severity" || next === "line" || next === "file")) {
+      sortBy = next;
+      i++;
+    } else if (arg === "--sort-by <severity|line|file> --group-by-severity") {
       groupBySeverity = true;
     } else if (arg === "--group-by-severity --group-by-status") {
       groupByStatus = true;
@@ -315,6 +320,7 @@ function parseArgs(argv: string[]): {
     groupByCategory,
     groupByStatus,
     groupBySeverity,
+    ...(sortBy ? { sortBy } : {}),
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -412,6 +418,15 @@ async function main(): Promise<void> {
     const rf = args.ruleFilter.toUpperCase();
     report.findings = report.findings.filter((f: Finding) => f.ruleId.toUpperCase() === rf);
     recomputeSummary(report);
+  }
+
+  if (args.sortBy) {
+    const rank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+    report.findings.sort((a: Finding, b: Finding) => {
+      if (args.sortBy === "severity") return (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9);
+      if (args.sortBy === "line") return (a.line ?? 0) - (b.line ?? 0);
+      return String(a.filePath ?? a.targetUrl ?? "").localeCompare(String(b.filePath ?? b.targetUrl ?? ""));
+    });
   }
 
   if (args.minSeverity) {
