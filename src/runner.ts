@@ -53,6 +53,7 @@ import { runXssDomAuditor } from "./stages/xss-dom-auditor.js";
 import { runRedosPatternAuditor } from "./stages/redos-pattern-auditor.js";
 import { runLdapInjectionAuditor } from "./stages/ldap-injection-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
+import { runJwtAuthAuditor } from "./stages/jwt-auth-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -145,6 +146,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       rdxPatFindings,
       ldpInjFindings,
       srfDynFindings,
+      jwtAuthFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -198,6 +200,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runRedosPatternAuditor(policy),
       runLdapInjectionAuditor(policy),
       runSsrfDynamicAuditor(policy),
+      runJwtAuthAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -253,6 +256,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...rdxPatFindings,
       ...ldpInjFindings,
       ...srfDynFindings,
+      ...jwtAuthFindings,
     ];
   }
 
