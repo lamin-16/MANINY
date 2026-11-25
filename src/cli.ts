@@ -143,6 +143,7 @@ function parseArgs(argv: string[]): {
   countByCategoryStatus: boolean;
   summaryStats: boolean;
   topRules: boolean;
+  topFiles: boolean;
   statusFilter?: string;
   groupByRule: boolean;
   groupByFile: boolean;
@@ -216,6 +217,7 @@ function parseArgs(argv: string[]): {
   let countByCategoryStatus = false;
   let summaryStats = false;
   let topRules = false;
+  let topFiles = false;
   let statusFilter: string | undefined;
   let groupByRule = false;
   let groupByFile = false;
@@ -263,7 +265,7 @@ function parseArgs(argv: string[]): {
     } else if (arg === "--status" && next) {
       statusFilter = next.trim();
       i++;
-    } else if (arg === "--group-by-rule --status <st> --top-rules --summary-stats --count-by-category-status --count-by-rule-status --count-by-rule-severity --count-by-status-file --count-by-category-file --count-by-status-severity --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
+    } else if (arg === "--group-by-rule --status <st> --top-files --top-rules --summary-stats --count-by-category-status --count-by-rule-status --count-by-rule-severity --count-by-status-file --count-by-category-file --count-by-status-severity --count-by-category-severity --count-by-severity-file --count-by-rule-file --count-by-file --count-by-status --count-by-severity") {
       countBySeverity = true;
     } else if (arg === "--count-by-severity --summary-only") {
       summaryOnly = true;
@@ -429,6 +431,7 @@ function parseArgs(argv: string[]): {
     countByCategoryStatus,
     summaryStats,
     topRules,
+    topFiles,
     ...(statusFilter ? { statusFilter } : {}),
     groupByRule,
     groupByFile,
