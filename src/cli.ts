@@ -122,6 +122,7 @@ function parseArgs(argv: string[]): {
   hasEvidence: boolean;
   noEvidence: boolean;
   hasTargetUrl: boolean;
+  noTargetUrl: boolean;
   excludeFile?: string;
   excludeFilePrefix?: string;
   excludeFileSuffix?: string;
@@ -171,6 +172,7 @@ function parseArgs(argv: string[]): {
   let hasEvidence = false;
   let noEvidence = false;
   let hasTargetUrl = false;
+  let noTargetUrl = false;
   let excludeFile: string | undefined;
   let excludeFilePrefix: string | undefined;
   let excludeFileSuffix: string | undefined;
@@ -349,6 +351,7 @@ function parseArgs(argv: string[]): {
     hasEvidence,
     noEvidence,
     hasTargetUrl,
+    noTargetUrl,
     ...(excludeFile ? { excludeFile } : {}),
     ...(excludeFilePrefix ? { excludeFilePrefix } : {}),
     ...(excludeFileSuffix ? { excludeFileSuffix } : {}),
@@ -379,7 +382,7 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.showHelp) {
-    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-line <num> --exclude-file-suffix <sfx> --exclude-file-prefix <pfx> --exclude-file <substr> --has-target-url --no-evidence --has-evidence --line <num> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
+    console.log("MANINY CLI flags: --mode <detect|verify|fix|review|pipeline> --workspace|-w <dir> --url <url> --allow-host <host> --allow-probes --allow-fix --url-only --json-compact --compliance --fail-on <sev> --severity <sev> --integrity --stats --list-rules --agents [list] --agents-status --report|-o <path> --format|-f <json|sarif|both> --version|-v --summary-only --category <cat> --exclude-line <num> --exclude-file-suffix <sfx> --exclude-file-prefix <pfx> --exclude-file <substr> --no-target-url --has-target-url --no-evidence --has-evidence --line <num> --file <substr> --exclude-status <st> --exclude-category <cat> --exclude-severity <sev> --exclude-rule-prefix <pfx> --exclude-rule <id> --rule <id> --top <n> --quiet|-q --help|-h");
     return;
   }
 
@@ -476,6 +479,11 @@ async function main(): Promise<void> {
   if (args.excludeFile) {
     const ef = args.excludeFile.toLowerCase();
     report.findings = report.findings.filter((f: Finding) => !String(f.filePath ?? f.targetUrl ?? "").toLowerCase().includes(ef));
+    recomputeSummary(report);
+  }
+
+  if (args.noTargetUrl) {
+    report.findings = report.findings.filter((f: Finding) => !Boolean(f.targetUrl && String(f.targetUrl).trim()));
     recomputeSummary(report);
   }
 
