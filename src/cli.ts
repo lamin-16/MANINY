@@ -26,6 +26,29 @@ function recomputeSummary(report: PipelineReport): void {
   };
 }
 
+function buildComplianceSummary(report: PipelineReport, hasIntegrity: boolean) {
+  const s = report.summary;
+  const unresolvedActive = s.verifiedExploitable + s.needsReview + s.rolledBack;
+  const posture =
+    s.total === 0
+      ? "CLEAN"
+      : unresolvedActive === 0 && s.verifiedFixed > 0
+        ? "REMEDIATED"
+        : s.needsReview > 0 || s.verifiedExploitable > 0
+          ? "ACTION_REQUIRED"
+          : "OBSERVED";
+
+  return {
+    posture,
+    integrityVerified: hasIntegrity,
+    totalFindings: s.total,
+    verifiedFixed: s.verifiedFixed,
+    needsManualReview: s.needsReview,
+    rolledBack: s.rolledBack,
+    remainingUnresolved: unresolvedActive,
+  };
+}
+
 function parseArgs(argv: string[]): {
   mode: RunMode;
   workspace: string;
@@ -35,6 +58,7 @@ function parseArgs(argv: string[]): {
   allowFix: boolean;
   urlOnly: boolean;
   jsonCompact: boolean;
+  compliance: boolean;
   listRules: boolean;
   agentsRequested: boolean;
   agentsStatusOnly: boolean;
@@ -52,6 +76,7 @@ function parseArgs(argv: string[]): {
   let allowFix = false;
   let urlOnly = false;
   let jsonCompact = false;
+  let compliance = false;
   let shouldListRules = false;
   let agentsRequested = false;
   let agentsStatusOnly = false;
@@ -71,6 +96,8 @@ function parseArgs(argv: string[]): {
       urlOnly = true;
     } else if (arg === "--json-compact") {
       jsonCompact = true;
+    } else if (arg === "--compliance") {
+      compliance = true;
     } else if (arg === "--agents-status") {
       agentsStatusOnly = true;
     } else if (arg === "--integrity") {
@@ -147,6 +174,7 @@ function parseArgs(argv: string[]): {
     allowFix,
     urlOnly,
     jsonCompact,
+    compliance,
     listRules: shouldListRules,
     agentsRequested,
     agentsStatusOnly,
@@ -218,6 +246,9 @@ async function main(): Promise<void> {
   }
 
   const audit = args.includeIntegrity ? buildExecutionAudit(report.findings) : undefined;
+  const complianceSummary = args.compliance
+    ? buildComplianceSummary(report, Boolean(audit))
+    : undefined;
 
   if (args.jsonCompact) {
     console.log(
@@ -226,6 +257,7 @@ async function main(): Promise<void> {
           tool: report.tool,
           mode: report.mode,
           summary: report.summary,
+          ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { auditId: audit.auditId, integritySha256: audit.integritySha256 } : {}),
           items: report.findings.map((f) => ({
             id: f.id,
@@ -249,6 +281,7 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           ...report,
+          ...(complianceSummary ? { compliance: complianceSummary } : {}),
           ...(audit ? { audit } : {}),
           agents: {
             configuredCount: configured.length,
@@ -267,6 +300,7 @@ async function main(): Promise<void> {
     JSON.stringify(
       {
         ...report,
+        ...(complianceSummary ? { compliance: complianceSummary } : {}),
         ...(audit ? { audit } : {}),
       },
       null,
