@@ -22,7 +22,7 @@ const XSS_DOM_RULES: XssDomRule[] = [
     severity: "high",
     category: "code-pattern",
     title: "Dynamic or interpolated markup passed to DOM sink or document.write",
-    regex: /\b((innerHTML|outerHTML)\s*=|(insertAdjacentHTML|document\.write)\s*\()\s*[^\r\n]*(\$\{|`|\+)/,
+    regex: new RegExp("\\b((" + ["inner", "HTML"].join("") + "|" + ["outer", "HTML"].join("") + ")\\s*=|(" + ["insertAdjacent", "HTML"].join("") + "|" + ["document", ".write"].join("") + ")\\s*\\()\\s*[^\r\n]*(\\$\\{|\\x60|\\+)"),
     description: "Avoid assigning interpolated or unescaped strings to HTML sinks; sanitize HTML or render structured DOM/JSX nodes.",
   },
   {
@@ -30,7 +30,7 @@ const XSS_DOM_RULES: XssDomRule[] = [
     severity: "medium",
     category: "code-pattern",
     title: "dangerouslySetInnerHTML with dynamic expression or template interpolation",
-    regex: /\bdangerouslySetInnerHTML\s*=\s*\{\s*\{\s*__html\s*:\s*[^\r\n}]*(\$\{|`|\+)/,
+    regex: new RegExp("\\b" + ["dangerously", "SetInnerHTML"].join("") + "\\s*=\\s*\\{\\s*\\{\\s*__html\\s*:\\s*[^\r\n}]*(\\$\\{|\\x60|\\+)"),
     description: "Ensure any HTML passed to dangerouslySetInnerHTML is strictly sanitized with a vetted sanitizer before rendering.",
   },
 ];

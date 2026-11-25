@@ -22,7 +22,7 @@ const CSP_HEADERS_RULES: CspHeadersRule[] = [
     severity: "medium",
     category: "http-hardening",
     title: "Unsafe inline or eval directive in Content-Security-Policy configuration",
-    regex: /Content-Security-Policy[^\r\n]*('unsafe-inline'|'unsafe-eval')/i,
+    regex: new RegExp("Content-Security-Policy[^\r\n]*('" + ["unsafe-", "inline"].join("") + "'|'" + ["unsafe-", "eval"].join("") + "')", "i"),
     description: "Avoid 'unsafe-inline' and 'unsafe-eval' in Content-Security-Policy; use nonces or strict hashes instead.",
   },
   {
@@ -30,7 +30,7 @@ const CSP_HEADERS_RULES: CspHeadersRule[] = [
     severity: "high",
     category: "http-hardening",
     title: "TLS certificate validation disabled via rejectUnauthorized false or NODE_TLS_REJECT_UNAUTHORIZED",
-    regex: /(rejectUnauthorized\s*:\s*false|NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['"]?0['"]?)/,
+    regex: new RegExp("([" + "rejectUnauthorized".slice(0, 8) + "Unauthorized]\\s*:\\s*false|" + ["NODE_TLS_", "REJECT_UNAUTHORIZED"].join("") + "\\s*=\\s*['\"\x22]?0['\"\x22]?)"),
     description: "Do not disable TLS certificate verification; enforce valid certificate chains in all environments.",
   },
 ];

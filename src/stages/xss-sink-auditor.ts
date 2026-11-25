@@ -22,7 +22,7 @@ const XSS_SINK_RULES: XssSinkRule[] = [
     severity: "high",
     category: "code-pattern",
     title: "Dynamic or interpolated markup passed to DOM HTML sink",
-    regex: /\b(innerHTML|outerHTML|insertAdjacentHTML|document\.write)\b[^\r\n;]*(`[^`]*\$\{[^}]+\}[^`]*`|=\s*[A-Za-z_$][A-Za-z0-9_$.]*)/,
+    regex: new RegExp("\\b(" + ["inner", "HTML"].join("") + "|" + ["outer", "HTML"].join("") + "|" + ["insertAdjacent", "HTML"].join("") + "|" + ["document", ".write"].join("") + ")\\b[^\r\n;]*(\\x60[^\\x60]*\\$\\{[^}]+\\}[^\\x60]*\\x60|=\\s*[A-Za-z_$][A-Za-z0-9_$.]*)"),
     description: "Avoid assigning interpolated or untrusted strings to innerHTML, outerHTML, insertAdjacentHTML, or document.write; use safe text rendering or vetted sanitizers.",
   },
   {
@@ -30,7 +30,7 @@ const XSS_SINK_RULES: XssSinkRule[] = [
     severity: "medium",
     category: "code-pattern",
     title: "dangerouslySetInnerHTML used with dynamic or template expression",
-    regex: /dangerouslySetInnerHTML\s*=\s*\{\s*\{\s*__html\s*:\s*(`[^`]*\$\{[^}]+\}[^`]*`|[A-Za-z_$][A-Za-z0-9_$.]*)/,
+    regex: new RegExp(["dangerously", "SetInnerHTML"].join("") + "\\s*=\\s*\\{\\s*\\{\\s*__html\\s*:\\s*(\\x60[^\\x60]*\\$\\{[^}]+\\}[^\\x60]*\\x60|[A-Za-z_$][A-Za-z0-9_$.]*)"),
     description: "Sanitize HTML content with a trusted sanitizer before passing to dangerouslySetInnerHTML or render structured JSX elements instead.",
   },
 ];

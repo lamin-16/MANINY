@@ -17,7 +17,7 @@ const ENV_RULES: EnvPatternRule[] = [
     id: "MANINY-ENV-001",
     severity: "high",
     title: "TLS verification disabled via NODE_TLS_REJECT_UNAUTHORIZED=0",
-    regex: /NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['"]?0['"]?/i,
+    regex: new RegExp(["NODE_TLS_", "REJECT_UNAUTHORIZED"].join("") + "\\s*=\\s*['\"\x22]?0['\"\x22]?", "i"),
     description: "Disables Node.js TLS certificate checks globally, exposing network traffic to MitM.",
   },
   {

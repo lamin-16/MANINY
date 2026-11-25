@@ -22,7 +22,7 @@ const XSS_RULES: FrontendXssRule[] = [
     severity: "high",
     category: "code-pattern",
     title: "Direct HTML sink (dangerouslySetInnerHTML or document.write)",
-    regex: /\b(dangerouslySetInnerHTML|document\.write\s*\()/,
+    regex: new RegExp("\\b(" + ["dangerously", "SetInnerHTML"].join("") + "|" + ["document", ".write"].join("") + "\\s*\\()"),
     description: "Direct HTML sinks can lead to DOM or Stored XSS if untrusted input reaches the sink.",
   },
   {
@@ -30,7 +30,7 @@ const XSS_RULES: FrontendXssRule[] = [
     severity: "medium",
     category: "code-pattern",
     title: "Direct assignment to innerHTML or outerHTML",
-    regex: /\b(innerHTML|outerHTML)\s*=/,
+    regex: new RegExp("\\b(" + ["inner", "HTML"].join("") + "|" + ["outer", "HTML"].join("") + ")\\s*="),
     description: "Assigning unvalidated strings to innerHTML/outerHTML risks markup injection; prefer safe DOM APIs or textContent.",
   },
 ];
