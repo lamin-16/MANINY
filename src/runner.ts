@@ -32,6 +32,7 @@ import { runSensitivePathAuditor } from "./stages/sensitive-path-auditor.js";
 import { runArchiveCompressionAuditor } from "./stages/archive-compression-auditor.js";
 import { runGraphqlWebhookAuditor } from "./stages/graphql-webhook-auditor.js";
 import { runOauthApiKeyAuditor } from "./stages/oauth-api-key-auditor.js";
+import { runSsrfDnsAuditor } from "./stages/ssrf-dns-auditor.js";
 import { runSafeVerifier } from "./stages/verifier.js";
 import { runAdversarialSimulation } from "./stages/adversarial-sim.js";
 import { runFixer } from "./stages/fixer.js";
@@ -102,6 +103,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       arcFindings,
       gqlWebhookFindings,
       keyFindings,
+      ssrDnsFindings,
     ] = await Promise.all([
       runDependencyAuditor(policy),
       runEnvAuditor(policy),
@@ -133,6 +135,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       runArchiveCompressionAuditor(policy),
       runGraphqlWebhookAuditor(policy),
       runOauthApiKeyAuditor(policy),
+      runSsrfDnsAuditor(policy),
     ]);
     findings = [
       ...findings,
@@ -166,6 +169,7 @@ export async function executeManiny(options: ExecuteManinyOptions): Promise<Pipe
       ...arcFindings,
       ...gqlWebhookFindings,
       ...keyFindings,
+      ...ssrDnsFindings,
     ];
   }
 
