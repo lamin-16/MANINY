@@ -110,6 +110,7 @@ import { runNotificationQueueAuditor } from "./stages/notification-queue-auditor
 import { runImportExportAuditor } from "./stages/import-export-auditor.js";
 import { runJwksKeyAuditor } from "./stages/jwks-key-auditor.js";
 import { runRateLimitBypassAuditor } from "./stages/rate-limit-bypass-auditor.js";
+import { runSchemaValidationAuditor } from "./stages/schema-validation-auditor.js";
 import { runCsrfProtectionAuditor } from "./stages/csrf-protection-auditor.js";
 import { runBackupRetentionAuditor } from "./stages/backup-retention-auditor.js";
 import { runSsrfDynamicAuditor } from "./stages/ssrf-dynamic-auditor.js";
