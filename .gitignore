@@ -1,5 +1,8 @@
 node_modules/
 dist/
-*.log
-maniny-report.json
-maniny-report.sarif
+*.js.map
+*.d.ts
+*.d.ts.map
+.env
+.DS_Store
+npm-debug.log*

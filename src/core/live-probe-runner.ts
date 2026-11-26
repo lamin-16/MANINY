@@ -1,137 +1,73 @@
-import { EvidenceRecord, Finding } from "./types.js";
+// MANINY DIGITAL — Safe, non-destructive live HTTP probe runner.
+// Makes real HEAD/GET requests to authorised targets and returns structured results.
+
+import { fetchUrl } from '../utils/http-client.js';
+import { analyseResponseHeaders } from '../stages/headers-stage.js';
+import type { Finding, LiveProbeResult, StageResult } from '../types.js';
 
 export interface LiveProbeOptions {
-  targetUrls: string[];
-  allowHosts: string[];
   timeoutMs?: number;
+  method?: 'HEAD' | 'GET';
 }
 
-const SENSITIVE_PROBE_PATHS = ["/.env", "/.git/HEAD", "/config.json", "/.well-known/security.txt"];
+/**
+ * Perform a live HEAD probe against a URL.
+ * Returns the raw HTTP response data for downstream analysis.
+ * Network errors are captured in the result — not thrown.
+ */
+export async function runLiveProbe(
+  urlStr: string,
+  opts: LiveProbeOptions = {}
+): Promise<LiveProbeResult> {
+  const { timeoutMs = 7_000, method = 'HEAD' } = opts;
 
-function buildEvidence(summary: string, location: string): EvidenceRecord[] {
-  const rec: Record<string, unknown> = {};
-  rec.stage = summary;
-  rec.probeType = summary;
-  rec.target = location;
-  rec.confirmed = false;
-  rec.message = summary;
-  rec.timestamp = new Date().toISOString();
-  return [rec as unknown as EvidenceRecord];
-}
-
-export async function runSafeLiveHttpProbes(options: LiveProbeOptions): Promise<Finding[]> {
-  const findings: Finding[] = [];
-  const allowedSet = new Set(
-    (options.allowHosts ?? []).map((h) => h.trim().toLowerCase()).filter(Boolean)
-  );
-  const timeoutMs = options.timeoutMs ?? 5000;
-  let seq = 1;
-
-  for (const rawUrl of options.targetUrls ?? []) {
-    let parsed: URL;
-    try {
-      parsed = new URL(rawUrl);
-    } catch {
-      continue;
-    }
-
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      continue;
-    }
-
-    const hostLower = parsed.hostname.toLowerCase();
-    if (!allowedSet.has(hostLower)) {
-      findings.push({
-        id: `MANINY-LIVE-000-${seq++}`,
-        ruleId: "MANINY-LIVE-000",
-        severity: "info",
-        category: "http-hardening",
-        status: "needs_review",
-        filePath: rawUrl,
-        evidence: buildEvidence(`allowHosts=[${[...allowedSet].join(", ")}]`, rawUrl),
-        title: "Target host skipped because it is not listed in allowed target hosts",
-        description: `Host "${parsed.hostname}" was not explicitly permitted in allowHosts; live probe skipped safely.`,
-      });
-      continue;
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const baseRes = await fetch(parsed.toString(), {
-        method: "GET",
-        signal: controller.signal,
-        redirect: "manual",
-      });
-
-      const hsts = baseRes.headers.get("strict-transport-security");
-      const xcto = baseRes.headers.get("x-content-type-options");
-      const csp = baseRes.headers.get("content-security-policy");
-      const missing = [
-        !hsts ? "Strict-Transport-Security" : "",
-        !xcto ? "X-Content-Type-Options" : "",
-        !csp ? "Content-Security-Policy" : "",
-      ].filter(Boolean);
-
-      if (missing.length > 0) {
-        findings.push({
-          id: `MANINY-LIVE-001-${seq++}`,
-          ruleId: "MANINY-LIVE-001",
-          severity: "medium",
-          category: "http-hardening",
-          status: "verified_exploitable",
-          filePath: parsed.toString(),
-          evidence: buildEvidence(`HTTP ${baseRes.status}; missing: ${missing.join(", ")}`, parsed.toString()),
-          title: "Live HTTP response missing baseline security headers",
-          description: `HTTP ${baseRes.status} from ${parsed.hostname} missing: ${missing.join(", ")}.`,
-        });
-      }
-
-      for (const p of SENSITIVE_PROBE_PATHS) {
-        const probeUrl = new URL(p, parsed.origin).toString();
-        const pController = new AbortController();
-        const pTimer = setTimeout(() => pController.abort(), timeoutMs);
-        try {
-          const pRes = await fetch(probeUrl, {
-            method: "GET",
-            signal: pController.signal,
-            redirect: "manual",
-          });
-          if (pRes.status === 200 && p !== "/.well-known/security.txt") {
-            findings.push({
-              id: `MANINY-LIVE-002-${seq++}`,
-              ruleId: "MANINY-LIVE-002",
-              severity: "high",
-              category: "http-hardening",
-              status: "verified_exploitable",
-              filePath: probeUrl,
-              evidence: buildEvidence(`GET ${probeUrl} -> HTTP ${pRes.status}`, probeUrl),
-              title: "Live probe observed HTTP 200 on sensitive path",
-              description: `Endpoint ${probeUrl} returned HTTP 200 during non-destructive GET verification.`,
-            });
-          }
-        } finally {
-          clearTimeout(pTimer);
-        }
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      findings.push({
-        id: `MANINY-LIVE-003-${seq++}`,
-        ruleId: "MANINY-LIVE-003",
-        severity: "low",
-        category: "http-hardening",
-        status: "needs_review",
-        filePath: parsed.toString(),
-        evidence: buildEvidence(msg, parsed.toString()),
-        title: "Live HTTP probe timed out or failed to connect",
-        description: msg,
-      });
-    } finally {
-      clearTimeout(timer);
-    }
+  let host: string;
+  try {
+    host = new URL(urlStr).hostname;
+  } catch {
+    host = '';
   }
 
-  return findings;
+  const httpResponse = await fetchUrl(urlStr, { method, timeoutMs });
+
+  return { url: urlStr, host, httpResponse };
+}
+
+/**
+ * Analyse a completed LiveProbeResult and produce header-related findings.
+ * Returns an empty list when the probe resulted in a network error.
+ */
+export function analyseLiveProbe(probe: LiveProbeResult): Finding[] {
+  if (probe.httpResponse.error) return [];
+  if (probe.httpResponse.status === 0) return [];
+
+  const result: StageResult = analyseResponseHeaders(
+    probe.url,
+    probe.httpResponse.headers
+  );
+
+  return result.findings;
+}
+
+/**
+ * Convenience wrapper: probe a URL and immediately return analysed findings.
+ */
+export async function probeAndAnalyse(
+  urlStr: string,
+  opts: LiveProbeOptions = {}
+): Promise<Finding[]> {
+  const probe = await runLiveProbe(urlStr, opts);
+  return analyseLiveProbe(probe);
+}
+
+/**
+ * Run live probes against multiple URLs in parallel.
+ * Returns a flattened array of all analysed findings.
+ */
+export async function runLiveProbes(
+  urls: string[],
+  opts: LiveProbeOptions = {}
+): Promise<Finding[]> {
+  const probes = await Promise.all(urls.map(u => probeAndAnalyse(u, opts)));
+  return probes.flat();
 }

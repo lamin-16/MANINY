@@ -1,93 +1,157 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
-import { Finding, ManinyPolicy, Severity } from "../core/types.js";
-import { resolveSafeWorkspacePath } from "../core/policy-guard.js";
+// MANINY DIGITAL — Shared utilities for static analysis stages.
 
-const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
-const SCAN_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json"]);
+import { URL } from 'node:url';
+import { generateFindingId } from '../utils/deduplicator.js';
+import type { Finding, Severity, FindingSource } from '../types.js';
 
-export interface LineAuditRule {
-  id: string;
+// ---------------------------------------------------------------------------
+// Finding builder
+// ---------------------------------------------------------------------------
+
+export interface FindingParams {
+  host: string;
+  path: string;
+  url: string;
   severity: Severity;
-  category: Finding["category"];
+  category: string;
   title: string;
-  regex: RegExp;
   description: string;
-  extensions?: Set<string>;
+  evidence: string;
+  exploitability: number;
+  reproductionSteps?: string[];
+  remediationHint?: string;
+  source?: FindingSource;
+  verified?: boolean;
 }
 
-export function makeStageFindingId(ruleId: string, relFile: string, line: number): string {
-  const hash = crypto.createHash("sha256").update(`${ruleId}:${relFile}:${line}`).digest("hex").slice(0, 10);
-  return `F-${hash}`;
+/** Build a fully-formed Finding with a deterministic ID and ISO timestamp. */
+export function buildFinding(params: FindingParams): Finding {
+  const {
+    host,
+    path,
+    url,
+    severity,
+    category,
+    title,
+    description,
+    evidence,
+    exploitability,
+    reproductionSteps = [],
+    remediationHint = '',
+    source = 'static',
+    verified = false,
+  } = params;
+
+  return {
+    id: generateFindingId(host, path, category, title),
+    host,
+    path,
+    url,
+    severity,
+    category,
+    title,
+    description,
+    evidence,
+    status: verified ? 'verified_exploitable' : 'potential',
+    exploitability: Math.max(0, Math.min(100, Math.round(exploitability))),
+    reproductionSteps,
+    remediationHint,
+    source,
+    timestamp: new Date().toISOString(),
+  };
 }
 
-async function collectWorkspaceFiles(dir: string, root: string): Promise<string[]> {
-  const safeRoot = path.resolve(root);
-  const relDir = path.relative(safeRoot, dir);
-  const safeDir = relDir === "" ? safeRoot : resolveSafeWorkspacePath(safeRoot, relDir);
-  if (!safeDir) return [];
-  const entries = await fs.readdir(safeDir, { withFileTypes: true });
-  const results: string[] = [];
-  for (const entry of entries) {
-    if (entry.name.includes("..") || path.isAbsolute(entry.name)) continue;
-    const candidate = resolveSafeWorkspacePath(safeRoot, path.relative(safeRoot, path.join(safeDir, entry.name)));
-    if (!candidate) continue;
-    if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) results.push(...(await collectWorkspaceFiles(candidate, safeRoot)));
-    } else if (entry.isFile() && SCAN_EXTS.has(path.extname(entry.name).toLowerCase())) {
-      const rel = path.relative(safeRoot, candidate);
-      if (rel && !rel.startsWith("..")) results.push(rel);
-    }
+// ---------------------------------------------------------------------------
+// URL parsing helpers
+// ---------------------------------------------------------------------------
+
+/** Safely parse a URL, returning null on failure. */
+export function safeParseUrl(urlStr: string): URL | null {
+  try {
+    return new URL(urlStr);
+  } catch {
+    return null;
   }
-  return results;
 }
 
-const RULE_DEFINITION_LINE = /^\s*(?:title|description|regex)\s*:/;
-
-export function isRuleDefinitionLine(lineText: string, skipRegExpCtor = true): boolean {
-  if (RULE_DEFINITION_LINE.test(lineText)) return true;
-  return skipRegExpCtor && lineText.includes("new RegExp(");
+/**
+ * Return all query parameter names from a URL.
+ * Returns an empty array if the URL cannot be parsed.
+ */
+export function getQueryParamNames(urlStr: string): string[] {
+  const parsed = safeParseUrl(urlStr);
+  if (!parsed) return [];
+  return [...parsed.searchParams.keys()];
 }
 
-export interface ScanOptions {
-  skipRegExpCtor?: boolean;
+/**
+ * Return path segments from a URL path string.
+ * "/api/v1/users" → ["api", "v1", "users"]
+ */
+export function getPathSegments(pathname: string): string[] {
+  return pathname.split('/').filter(s => s.length > 0);
 }
 
-export async function scanWorkspaceRules(policy: ManinyPolicy, rules: LineAuditRule[], options: ScanOptions = {}): Promise<Finding[]> {
-  const findings: Finding[] = [];
-  const files = await collectWorkspaceFiles(policy.workspaceRoot, policy.workspaceRoot);
-  for (const relFile of files) {
-    const ext = path.extname(relFile).toLowerCase();
-    const activeRules = rules.filter((r) => (r.extensions ?? new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"])).has(ext));
-    if (!activeRules.length) continue;
-    const safePath = resolveSafeWorkspacePath(policy.workspaceRoot, relFile);
-    if (!safePath) continue;
-    let content: string;
-    try { content = await fs.readFile(safePath, "utf8"); } catch { continue; }
-    const lines = content.split(/\r?\n/);
-    for (let i = 0; i < lines.length; i++) {
-      const lineText = lines[i] ?? "";
-      const trimmed = lineText.trim();
-      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
-      for (const rule of activeRules) {
-        if (!isRuleDefinitionLine(lineText, options.skipRegExpCtor ?? true) && rule.regex.test(lineText)) {
-          const lineNum = i + 1;
-          findings.push({
-            id: makeStageFindingId(rule.id, relFile, lineNum),
-            ruleId: rule.id,
-            title: rule.title,
-            category: rule.category,
-            severity: rule.severity,
-            filePath: relFile,
-            line: lineNum,
-            description: rule.description,
-            status: "detected",
-            evidence: [],
-          });
-        }
-      }
-    }
-  }
-  return findings;
+// ---------------------------------------------------------------------------
+// Severity → exploitability default mapping
+// ---------------------------------------------------------------------------
+
+const SEVERITY_EXPLOITABILITY: Record<Severity, number> = {
+  critical: 85,
+  high: 65,
+  medium: 40,
+  low: 20,
+  info: 5,
+};
+
+export function defaultExploitability(severity: Severity): number {
+  return SEVERITY_EXPLOITABILITY[severity];
+}
+
+// ---------------------------------------------------------------------------
+// Pattern matchers
+// ---------------------------------------------------------------------------
+
+/** Known injection-prone query parameter names (case-insensitive). */
+const INJECTION_PARAM_PATTERNS = [
+  'id', 'q', 'query', 'search', 'keyword', 'term',
+  'file', 'path', 'page', 'url', 'redirect', 'next', 'return',
+  'cmd', 'exec', 'command', 'input', 'data', 'load',
+  'name', 'user', 'username', 'email', 'phone',
+  'sort', 'order', 'by', 'dir', 'column',
+];
+
+export function isInjectionProne(paramName: string): boolean {
+  return INJECTION_PARAM_PATTERNS.includes(paramName.toLowerCase());
+}
+
+/** Sensitive path segments that often indicate privileged endpoints. */
+const AUTH_PATH_SEGMENTS = [
+  'admin', 'login', 'signin', 'signup', 'register',
+  'dashboard', 'panel', 'console', 'manage', 'management',
+  'account', 'profile', 'settings', 'config', 'configuration',
+  'auth', 'authenticate', 'token', 'jwt', 'oauth',
+  'api', 'graphql', 'rest',
+];
+
+export function containsAuthPath(segments: string[]): boolean {
+  return segments.some(s => AUTH_PATH_SEGMENTS.includes(s.toLowerCase()));
+}
+
+/** File extensions that often indicate sensitive exposed files. */
+const SENSITIVE_EXTENSIONS = [
+  '.bak', '.sql', '.env', '.conf', '.config',
+  '.log', '.old', '.orig', '.backup', '.dump',
+  '.key', '.pem', '.crt', '.p12', '.pfx',
+];
+
+export function hasSensitiveExtension(pathname: string): boolean {
+  const lower = pathname.toLowerCase();
+  return SENSITIVE_EXTENSIONS.some(ext => lower.endsWith(ext));
+}
+
+/** Check if the URL uses plain HTTP (not HTTPS). */
+export function isPlainHttp(urlStr: string): boolean {
+  const parsed = safeParseUrl(urlStr);
+  return parsed?.protocol === 'http:';
 }
