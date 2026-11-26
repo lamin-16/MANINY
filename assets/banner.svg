@@ -1,0 +1,117 @@
+<svg width="100%" viewBox="0 0 1200 420" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>MANINY DIGITAL — Elite Offensive Security CLI</title>
+<desc>Geometric low-poly wolf head in dark navy with amber eyes, MANINY DIGITAL branding</desc>
+<style>
+  rect.bg { fill: #060c1e; }
+  .f0  { fill: #0b1428; }
+  .f1  { fill: #111e38; }
+  .f2  { fill: #172540; }
+  .f3  { fill: #1d2e50; }
+  .f4  { fill: #243660; }
+  .f5  { fill: #2b4070; }
+  .f6  { fill: #324878; }
+  .f7  { fill: #1a0a30; }
+  .f8  { fill: #22103c; }
+  .eye   { fill: #e8920a; }
+  .pupil { fill: #060e22; }
+  .muzzle{ fill: #2a4278; }
+  .lbl { font-family: 'Courier New', monospace; letter-spacing: 10px; fill: #c8dcff; font-weight: 700; }
+  .sub { font-family: 'Courier New', monospace; letter-spacing: 7px;  fill: #3a5a90; font-weight: 400; }
+  .tag { font-family: 'Courier New', monospace; letter-spacing: 2px;  fill: #2a4070; font-weight: 400; }
+  .div { stroke: #1e3a6a; stroke-width: 0.8; }
+</style>
+<!-- background -->
+<rect class="bg" width="1200" height="420"/>
+<!-- grid dots -->
+<circle cx="60"   cy="60"   r="1.5" fill="#2a4a80" opacity="0.4"/>
+<circle cx="120"  cy="35"   r="1.5" fill="#2a4a80" opacity="0.3"/>
+<circle cx="40"   cy="120"  r="1.5" fill="#2a4a80" opacity="0.3"/>
+<circle cx="1140" cy="60"   r="1.5" fill="#2a4a80" opacity="0.4"/>
+<circle cx="1160" cy="100"  r="1.5" fill="#2a4a80" opacity="0.3"/>
+<circle cx="1080" cy="38"   r="1.5" fill="#2a4a80" opacity="0.3"/>
+<circle cx="60"   cy="360"  r="1.5" fill="#2a4a80" opacity="0.3"/>
+<circle cx="40"   cy="330"  r="1.5" fill="#2a4a80" opacity="0.3"/>
+<circle cx="1140" cy="350"  r="1.5" fill="#2a4a80" opacity="0.3"/>
+<circle cx="1160" cy="380"  r="1.5" fill="#2a4a80" opacity="0.3"/>
+<!-- === WOLF HEAD (centered at x=600) === -->
+<g transform="translate(600,210) scale(1.5)">
+  <!-- ears -->
+  <polygon class="f1"  points="-92,0  -72,-52  -42,-4"/>
+  <polygon class="f1"  points=" 92,0   72,-52   42,-4"/>
+  <polygon class="f7"  points="-83,-3 -72,-42  -48,-6"/>
+  <polygon class="f7"  points=" 83,-3  72,-42   48,-6"/>
+  <!-- forehead -->
+  <polygon class="f2"  points="-92,0  -42,-4  -52,38  -78,42"/>
+  <polygon class="f2"  points=" 92,0   42,-4   52,38   78,42"/>
+  <polygon class="f3"  points="-42,-4  42,-4   38,18   0,26  -38,18"/>
+  <polygon class="f4"  points="-38,18   0,26   38,18   34,42   0,48  -34,42"/>
+  <!-- brow -->
+  <polygon class="f1"  points="-78,42  -52,38  -58,60  -78,65"/>
+  <polygon class="f1"  points=" 78,42   52,38   58,60   78,65"/>
+  <!-- nose bridge -->
+  <polygon class="f4"  points="-34,42   0,48   34,42  30,68   0,74  -30,68"/>
+  <!-- eye sockets -->
+  <polygon class="f0"  points="-62,40  -34,37  -35,68  -54,70  -72,58"/>
+  <polygon class="f0"  points=" 34,37   62,40   72,58   54,70   35,68"/>
+  <!-- eyes amber -->
+  <polygon class="eye"  points="-60,43  -36,41  -36,65  -60,67"/>
+  <polygon class="eye"  points=" 36,41   60,43   60,67   36,65"/>
+  <!-- pupils -->
+  <polygon class="pupil" points="-52,43  -46,41  -46,67  -52,67"/>
+  <polygon class="pupil" points=" 46,41   52,43   52,67   46,67"/>
+  <!-- cheeks -->
+  <polygon class="f3"  points="-78,65  -58,60  -48,88  -68,96"/>
+  <polygon class="f3"  points=" 78,65   58,60   48,88   68,96"/>
+  <!-- muzzle zones -->
+  <polygon class="f4"  points="-58,60  -35,68  -38,92  -60,95"/>
+  <polygon class="f4"  points=" 35,68   58,60   60,95   38,92"/>
+  <polygon class="muzzle" points="-30,68   0,74   30,68   28,95   0,102 -28,95"/>
+  <!-- nose tip -->
+  <polygon class="f0"  points="-12,82  12,82   8,92  -8,92"/>
+  <!-- lower muzzle -->
+  <polygon class="f2"  points="-68,96  -48,88  -42,113  -58,120"/>
+  <polygon class="f2"  points=" 68,96   48,88   42,113   58,120"/>
+  <polygon class="f5"  points="-28,95   0,102   28,95   22,118   0,125  -22,118"/>
+  <!-- jaw -->
+  <polygon class="f1"  points="-100,90  -78,65  -68,96  -84,125  -100,130"/>
+  <polygon class="f1"  points=" 100,90   78,65   68,96   84,125   100,130"/>
+  <!-- chin -->
+  <polygon class="f2"  points="-84,125  -58,120  -40,138  -58,145"/>
+  <polygon class="f2"  points=" 84,125   58,120   40,138   58,145"/>
+  <polygon class="f3"  points="-40,138  -22,118   0,125   22,118   40,138   30,150   0,155  -30,150"/>
+  <!-- throat -->
+  <polygon class="f1"  points="-100,130 -84,125 -58,145 -30,150   0,155  30,150  58,145  84,125  100,130  100,170 -100,170"/>
+</g>
+<!-- === TEXT RIGHT SIDE === -->
+<line x1="880" y1="80" x2="880" y2="340" class="div"/>
+<!-- badge row -->
+<rect x="900" y="80"  width="88"  height="20" rx="4" fill="#0d1e3a"/>
+<rect x="900" y="80"  width="38"  height="20" rx="4" fill="#182e50"/>
+<text x="919" y="94" font-family="monospace" font-size="10" fill="#7098cc">node</text>
+<text x="952" y="94" font-family="monospace" font-size="10" fill="#c8dcff">≥20</text>
+<rect x="998" y="80"  width="96"  height="20" rx="4" fill="#0d1e3a"/>
+<rect x="998" y="80"  width="44"  height="20" rx="4" fill="#182e50"/>
+<text x="1012" y="94" font-family="monospace" font-size="10" fill="#7098cc">lang</text>
+<text x="1055" y="94" font-family="monospace" font-size="10" fill="#c8dcff">TypeScript</text>
+<rect x="1104" y="80" width="72"  height="20" rx="4" fill="#0d1e3a"/>
+<rect x="1104" y="80" width="44"  height="20" rx="4" fill="#182e50"/>
+<text x="1119" y="94" font-family="monospace" font-size="10" fill="#7098cc">deps</text>
+<text x="1152" y="94" font-family="monospace" font-size="10" fill="#38c880">0</text>
+<!-- main title -->
+<text x="900" y="160" class="lbl" font-size="52">MANINY</text>
+<text x="900" y="210" class="sub" font-size="16">D I G I T A L</text>
+<!-- divider -->
+<line x1="900" y1="225" x2="1180" y2="225" class="div"/>
+<!-- taglines -->
+<text x="900" y="250" font-family="monospace" font-size="12" fill="#4a6a9a">🐺  Elite Offensive Security</text>
+<text x="900" y="272" font-family="monospace" font-size="12" fill="#4a6a9a">⛓   Hybrid Chain Correlator</text>
+<text x="900" y="294" font-family="monospace" font-size="12" fill="#4a6a9a">📡  Live Exploit Verification</text>
+<text x="900" y="316" font-family="monospace" font-size="12" fill="#4a6a9a">🔬  Multi-Agent JSON Output</text>
+<!-- divider -->
+<line x1="900" y1="330" x2="1180" y2="330" class="div"/>
+<text x="900" y="350" class="tag" font-size="11">TypeScript · Node.js · Zero Runtime Deps · Termux-ready</text>
+<!-- bottom bar -->
+<rect x="0" y="398" width="1200" height="22" fill="#040810"/>
+<line x1="0" y1="398" x2="1200" y2="398" class="div"/>
+<text x="600" y="413" text-anchor="middle" font-family="monospace" font-size="9" fill="#1e3060">lamin-16/MANINY  ·  MIT License  ·  v0.2.0</text>
+</svg>
