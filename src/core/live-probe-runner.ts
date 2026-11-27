@@ -1,73 +1,82 @@
-// MANINY DIGITAL — Safe, non-destructive live HTTP probe runner.
-// Makes real HEAD/GET requests to authorised targets and returns structured results.
+// MANINY DIGITAL — Live HTTP probe runner.
+// Session-aware HEAD/GET probe with tech fingerprinting and JWT analysis.
 
 import { fetchUrl } from '../utils/http-client.js';
 import { analyseResponseHeaders } from '../stages/headers-stage.js';
-import type { Finding, LiveProbeResult, StageResult } from '../types.js';
+import { fingerprintTech, techFindingsFrom } from './tech-fingerprinter.js';
+import { analyzeAllJwts } from './jwt-analyzer.js';
+import type { Finding, LiveProbeResult, TechFingerprint } from '../types.js';
+import type { SessionManager } from './session-manager.js';
 
 export interface LiveProbeOptions {
   timeoutMs?: number;
-  method?: 'HEAD' | 'GET';
+  method?:    'HEAD' | 'GET';
+  session?:   SessionManager;
 }
 
-/**
- * Perform a live HEAD probe against a URL.
- * Returns the raw HTTP response data for downstream analysis.
- * Network errors are captured in the result — not thrown.
- */
+export interface LiveProbeAnalysis {
+  findings:    Finding[];
+  fingerprint: TechFingerprint | null;
+  wafDetected: boolean;
+}
+
+/** Perform a single live probe and return the raw HTTP response data. */
 export async function runLiveProbe(
   urlStr: string,
   opts: LiveProbeOptions = {}
 ): Promise<LiveProbeResult> {
-  const { timeoutMs = 7_000, method = 'HEAD' } = opts;
+  const { timeoutMs = 7_000, method = 'HEAD', session } = opts;
 
-  let host: string;
-  try {
-    host = new URL(urlStr).hostname;
-  } catch {
-    host = '';
+  let host = '';
+  try { host = new URL(urlStr).hostname; } catch { /* unparseable */ }
+
+  const headers = session?.buildHeaders() ?? {};
+  const httpResponse = await fetchUrl(urlStr, { method, timeoutMs, headers });
+
+  // If HEAD returned no body, follow up with GET to enable body-based analysis
+  if (method === 'HEAD' && !httpResponse.error) {
+    const getResponse = await fetchUrl(urlStr, { method: 'GET', timeoutMs, headers });
+    return { url: urlStr, host, httpResponse: getResponse };
   }
-
-  const httpResponse = await fetchUrl(urlStr, { method, timeoutMs });
 
   return { url: urlStr, host, httpResponse };
 }
 
-/**
- * Analyse a completed LiveProbeResult and produce header-related findings.
- * Returns an empty list when the probe resulted in a network error.
- */
-export function analyseLiveProbe(probe: LiveProbeResult): Finding[] {
-  if (probe.httpResponse.error) return [];
-  if (probe.httpResponse.status === 0) return [];
+/** Analyse a completed LiveProbeResult — headers, tech, JWTs, security headers. */
+export function analyseLiveProbe(probe: LiveProbeResult): LiveProbeAnalysis {
+  const empty: LiveProbeAnalysis = { findings: [], fingerprint: null, wafDetected: false };
 
-  const result: StageResult = analyseResponseHeaders(
-    probe.url,
-    probe.httpResponse.headers
-  );
+  if (probe.httpResponse.error || probe.httpResponse.status === 0) return empty;
 
-  return result.findings;
+  const { url, host, httpResponse } = probe;
+  let path = '/';
+  try { path = new URL(url).pathname; } catch { /* ok */ }
+
+  const findings: Finding[] = [];
+
+  // Security header analysis
+  const headerResult = analyseResponseHeaders(url, httpResponse.headers);
+  findings.push(...headerResult.findings);
+
+  // Technology fingerprinting
+  const fingerprint = fingerprintTech(host, httpResponse.headers, httpResponse.body);
+  findings.push(...techFindingsFrom(url, host, path, fingerprint));
+
+  // JWT analysis (from both request and response)
+  findings.push(...analyzeAllJwts(url, host, path, httpResponse.headers, httpResponse.body));
+
+  return {
+    findings,
+    fingerprint,
+    wafDetected: fingerprint.wafDetected,
+  };
 }
 
-/**
- * Convenience wrapper: probe a URL and immediately return analysed findings.
- */
+/** Convenience wrapper: probe + analyse in one call. */
 export async function probeAndAnalyse(
   urlStr: string,
   opts: LiveProbeOptions = {}
-): Promise<Finding[]> {
+): Promise<LiveProbeAnalysis> {
   const probe = await runLiveProbe(urlStr, opts);
   return analyseLiveProbe(probe);
-}
-
-/**
- * Run live probes against multiple URLs in parallel.
- * Returns a flattened array of all analysed findings.
- */
-export async function runLiveProbes(
-  urls: string[],
-  opts: LiveProbeOptions = {}
-): Promise<Finding[]> {
-  const probes = await Promise.all(urls.map(u => probeAndAnalyse(u, opts)));
-  return probes.flat();
 }

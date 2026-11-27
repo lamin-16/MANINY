@@ -1,7 +1,7 @@
 {
   "name": "maniny",
-  "version": "0.2.0",
-  "description": "MANINY DIGITAL — CLI security scanner, hybrid chain correlator, attack report & multi-agent JSON output tool",
+  "version": "0.3.0",
+  "description": "MANINY DIGITAL \u2014 CLI security scanner, hybrid chain correlator, attack report & multi-agent JSON output tool",
   "type": "module",
   "bin": {
     "maniny": "./dist/cli.js"
@@ -10,13 +10,16 @@
     ".": "./dist/runner.js",
     "./types": "./dist/types.js",
     "./exploit-chain-verifier": "./dist/core/exploit-chain-verifier.js",
-    "./deduplicator": "./dist/utils/deduplicator.js"
+    "./deduplicator": "./dist/utils/deduplicator.js",
+    "./session-manager": "./dist/core/session-manager.js",
+    "./rate-limiter": "./dist/core/rate-limiter.js",
+    "./tech-fingerprinter": "./dist/core/tech-fingerprinter.js",
+    "./jwt-analyzer": "./dist/core/jwt-analyzer.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node ./dist/cli.js",
-    "dev": "tsc -p tsconfig.json && node ./dist/cli.js",
-    "test": "npm run build && node ./scripts/smoke-test.mjs && node ./scripts/test-hybrid-chains.mjs"
+    "test": "npm run build && node ./scripts/smoke-test.mjs && node ./scripts/test-hybrid-chains.mjs && node ./scripts/test-new-modules.mjs"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -31,7 +34,9 @@
     "offensive-security",
     "exploit-chain",
     "vulnerability-scanner",
-    "typescript"
+    "typescript",
+    "bug-bounty",
+    "termux"
   ],
   "license": "MIT"
 }

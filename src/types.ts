@@ -1,55 +1,52 @@
-// MANINY DIGITAL — Shared type definitions
-// All identifiers, comments, and documentation: English only.
+// MANINY DIGITAL — Shared type definitions.
 
 // ---------------------------------------------------------------------------
 // Primitive enumerations
 // ---------------------------------------------------------------------------
 
-export type Severity = 'critical' | 'high' | 'medium' | 'low' | 'info';
-
-export type FindingStatus =
-  | 'verified_exploitable'
-  | 'potential'
-  | 'info';
-
-export type FindingSource =
-  | 'static'
-  | 'live'
-  | 'differential'
-  | 'elite';
-
-export type ChainType =
-  | 'cors_to_csrf'
-  | 'inject_to_rce'
-  | 'auth_bypass_to_data'
-  | 'mixed';
-
+export type Severity       = 'critical' | 'high' | 'medium' | 'low' | 'info';
+export type FindingStatus  = 'verified_exploitable' | 'potential' | 'info';
+export type FindingSource  = 'static' | 'live' | 'differential' | 'elite';
+export type ChainType      = 'cors_to_csrf' | 'inject_to_rce' | 'auth_bypass_to_data' | 'mixed';
 export type ComplianceStatus = 'pass' | 'fail' | 'partial';
+export type SqliMethod     = 'error_based' | 'boolean_based' | 'time_based';
 
 // ---------------------------------------------------------------------------
 // Core finding model
 // ---------------------------------------------------------------------------
 
 export interface Finding {
-  /** Deterministic SHA-style ID derived from host + path + category + title. */
-  id: string;
-  host: string;
-  path: string;
-  url: string;
-  severity: Severity;
-  /** Lowercase, snake_case category label: cors, auth, injection, headers, etc. */
-  category: string;
-  title: string;
-  description: string;
-  /** Raw response fragment or observed deviation used as evidence. */
-  evidence: string;
-  status: FindingStatus;
-  /** Weighted exploitability score 0–100. */
-  exploitability: number;
+  id:                string;
+  host:              string;
+  path:              string;
+  url:               string;
+  severity:          Severity;
+  category:          string;
+  title:             string;
+  description:       string;
+  evidence:          string;
+  status:            FindingStatus;
+  exploitability:    number;        // 0–100
   reproductionSteps: string[];
-  remediationHint: string;
-  source: FindingSource;
-  timestamp: string;
+  remediationHint:   string;
+  source:            FindingSource;
+  timestamp:         string;
+}
+
+// ---------------------------------------------------------------------------
+// Tech fingerprint
+// ---------------------------------------------------------------------------
+
+export interface TechEntry {
+  name:     string;
+  category: 'server' | 'framework' | 'language' | 'waf' | 'cdn';
+  version?: string;
+}
+
+export interface TechFingerprint {
+  host:        string;
+  techs:       TechEntry[];
+  wafDetected: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -57,16 +54,15 @@ export interface Finding {
 // ---------------------------------------------------------------------------
 
 export interface HybridChain {
-  id: string;
-  host: string;
-  title: string;
-  chainType: ChainType;
-  /** Weighted score 0–100 (not a simple sum of finding scores). */
-  score: number;
-  findings: Finding[];
+  id:               string;
+  host:             string;
+  title:            string;
+  chainType:        ChainType;
+  score:            number;   // 0–100 weighted
+  findings:         Finding[];
   reproductionSteps: string[];
-  impact: string;
-  timestamp: string;
+  impact:           string;
+  timestamp:        string;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,11 +70,11 @@ export interface HybridChain {
 // ---------------------------------------------------------------------------
 
 export interface AgentOutput {
-  agentId: string;
-  role: string;
-  host: string;
-  findings: Finding[];
-  chainIds: string[];
+  agentId:   string;
+  role:      string;
+  host:      string;
+  findings:  Finding[];
+  chainIds:  string[];
   timestamp: string;
 }
 
@@ -87,11 +83,10 @@ export interface AgentOutput {
 // ---------------------------------------------------------------------------
 
 export interface ComplianceResult {
-  framework: string;
-  control: string;
-  status: ComplianceStatus;
-  /** IDs of findings that caused a 'fail' or 'partial' status. */
-  relatedFindingIds: string[];
+  framework:          string;
+  control:            string;
+  status:             ComplianceStatus;
+  relatedFindingIds:  string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -99,30 +94,41 @@ export interface ComplianceResult {
 // ---------------------------------------------------------------------------
 
 export interface ReportSummary {
-  total: number;
+  total:    number;
   critical: number;
-  high: number;
-  medium: number;
-  low: number;
-  info: number;
+  high:     number;
+  medium:   number;
+  low:      number;
+  info:     number;
   verified: number;
-  chains: number;
+  chains:   number;
 }
 
 export interface AttackReport {
-  scanId: string;
+  scanId:    string;
   timestamp: string;
-  version: string;
+  version:   string;
   target: {
     hosts: string[];
-    urls: string[];
+    urls:  string[];
   };
-  summary: ReportSummary;
-  findings: Finding[];
-  hybridChains: HybridChain[];
+  summary:               ReportSummary;
+  findings:              Finding[];
+  hybridChains:          HybridChain[];
   topExploitabilityRank: Finding[];
-  agents: AgentOutput[];
-  compliance: ComplianceResult[];
+  agents:                AgentOutput[];
+  compliance:            ComplianceResult[];
+  techFingerprints:      TechFingerprint[];
+}
+
+// ---------------------------------------------------------------------------
+// Session configuration (from --cookie / --bearer-token / --header flags)
+// ---------------------------------------------------------------------------
+
+export interface SessionConfig {
+  cookies:       Record<string, string>;
+  bearerToken?:  string;
+  customHeaders: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -130,12 +136,16 @@ export interface AttackReport {
 // ---------------------------------------------------------------------------
 
 export interface ScanConfig {
-  allowedHosts: string[];
-  targetUrls: string[];
-  timeoutMs: number;
-  topRank: boolean;
-  attackReport: boolean;
-  eliteMatrix: boolean;
+  allowedHosts:  string[];
+  targetUrls:    string[];
+  timeoutMs:     number;
+  topRank:       boolean;
+  attackReport:  boolean;
+  eliteMatrix:   boolean;
+  session:       SessionConfig;
+  rateLimitMs:   number;
+  concurrency:   number;
+  fromHttpxPipe: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -144,32 +154,39 @@ export interface ScanConfig {
 
 export interface StageResult {
   findings: Finding[];
-  errors: string[];
+  errors:   string[];
 }
 
 export interface HttpResponse {
-  status: number;
-  headers: Record<string, string | string[] | undefined>;
-  body: string;
+  status:        number;
+  headers:       Record<string, string | string[] | undefined>;
+  body:          string;
   responseTimeMs: number;
-  error?: string;
+  error?:        string;
 }
 
 export interface LiveProbeResult {
-  url: string;
-  host: string;
+  url:          string;
+  host:         string;
   httpResponse: HttpResponse;
 }
 
 export interface DifferentialResult {
-  url: string;
-  baselineStatus: number;
-  probeStatus: number;
-  statusDelta: number;
-  baselineBodyLength: number;
-  probeBodyLength: number;
-  bodyLengthDelta: number;
-  reflected: boolean;
-  redirected: boolean;
-  findings: Finding[];
+  url:                 string;
+  baselineStatus:      number;
+  probeStatus:         number;
+  statusDelta:         number;
+  baselineBodyLength:  number;
+  probeBodyLength:     number;
+  bodyLengthDelta:     number;
+  reflected:           boolean;
+  redirected:          boolean;
+  findings:            Finding[];
+}
+
+export interface HttpxInput {
+  url:          string;
+  'status-code'?: number;
+  headers?:     Record<string, string>;
+  tech?:        string[];
 }
