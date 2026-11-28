@@ -145,7 +145,9 @@ export interface ScanConfig {
   session:       SessionConfig;
   rateLimitMs:   number;
   concurrency:   number;
-  fromHttpxPipe: boolean;
+  fromHttpxPipe:  boolean;
+  checkSsrf:      boolean;
+  checkTakeover:  boolean;
 }
 
 // ---------------------------------------------------------------------------

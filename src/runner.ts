@@ -3,6 +3,10 @@
 // tech fingerprinting, JWT analysis, auth/CORS prober, differential injection,
 // elite engine, and hybrid chain correlation.
 
+import { createRequire } from 'node:module';
+const _require = createRequire(import.meta.url);
+const _pkg = (_require('../package.json') as { version: string });
+
 import { filterAllowedUrls }  from './utils/host-validator.js';
 import { uniqueById, generateScanId } from './utils/deduplicator.js';
 import { warn } from './utils/json-output.js';
@@ -19,6 +23,8 @@ import { runEliteEngine }     from './core/elite-attack-engine.js';
 import { SessionManager }     from './core/session-manager.js';
 import { RateLimiter }        from './core/rate-limiter.js';
 
+import { runSsrfProbe }             from './core/ssrf-prober.js';
+import { checkSubdomainTakeovers }  from './core/subdomain-takeover.js';
 import {
   hybridChains,
   buildComplianceResults,
@@ -50,7 +56,9 @@ async function scanUrl(
   urlStr:      string,
   session:     SessionManager,
   rateLimiter: RateLimiter,
-  timeoutMs:   number
+  timeoutMs:   number,
+  checkSsrf:   boolean,
+  checkTakeover: boolean
 ): Promise<UrlScanResult> {
   let host = '';
   try { host = new URL(urlStr).hostname; } catch { /* ok */ }
@@ -81,10 +89,18 @@ async function scanUrl(
     wafPresent: liveAnalysis.wafDetected,
   }).catch(() => ({ findings: [] }));
 
+  const ssrfFindings = checkSsrf
+    ? await runSsrfProbe(urlStr, { timeoutMs, session }).catch(() => [])
+    : [];
+
+  const takeoverFindings = checkTakeover
+    ? await checkSubdomainTakeovers([urlStr], { timeoutMs }).catch(() => [])
+    : [];
+
   return {
     staticFindings,
     liveFindings: [...liveAnalysis.findings, ...authResult.findings],
-    diffFindings: diffResult.findings,
+    diffFindings: [...diffResult.findings, ...ssrfFindings, ...takeoverFindings],
     fingerprint:  liveAnalysis.fingerprint,
     wafDetected:  liveAnalysis.wafDetected,
   };
@@ -152,6 +168,8 @@ export async function runScan(config: ScanConfig): Promise<AttackReport> {
     rateLimitMs,
     concurrency,
     fromHttpxPipe,
+    checkSsrf,
+    checkTakeover,
   } = config;
 
   // Collect URLs — from CLI args or httpx NDJSON stdin pipe
@@ -175,7 +193,7 @@ export async function runScan(config: ScanConfig): Promise<AttackReport> {
   const urlResults = await scanWithPool(
     allowed,
     concurrency,
-    url => scanUrl(url, session, rateLimiter, timeoutMs)
+    url => scanUrl(url, session, rateLimiter, timeoutMs, checkSsrf, checkTakeover)
   );
 
   // Flatten per-stage finding buckets
@@ -224,7 +242,7 @@ export async function runScan(config: ScanConfig): Promise<AttackReport> {
   return {
     scanId:    generateScanId(),
     timestamp: new Date().toISOString(),
-    version:   '0.3.0',
+    version:   _pkg.version,
     target:    { hosts: allowedHosts, urls: allowed },
     summary,
     findings:              allFindings,

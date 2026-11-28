@@ -26,7 +26,9 @@ interface Args {
   headers:       string[];       // --header "Name: Value"
   rateLimitMs:   number;         // --rate-limit <ms>
   concurrency:   number;         // --concurrency <n>
-  fromHttpxPipe: boolean;        // --from-httpx-pipe
+  fromHttpxPipe: boolean;
+  checkSsrf:     boolean;         // --check-ssrf
+  checkTakeover: boolean;         // --check-takeover
   help:          boolean;
 }
 
@@ -37,7 +39,7 @@ function parseArgs(argv: string[]): Args {
     topRank: false, attackReport: false, eliteMatrix: false,
     timeoutMs: 7_000, cookies: [], bearerToken: null, headers: [],
     rateLimitMs: 300, concurrency: 3,
-    fromHttpxPipe: false, help: false,
+    fromHttpxPipe: false, checkSsrf: false, checkTakeover: false, help: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -48,6 +50,8 @@ function parseArgs(argv: string[]): Args {
     if (arg === '--top-exploitability-rank')            { result.topRank       = true;  continue; }
     if (arg === '--elite-matrix')                       { result.eliteMatrix   = true;  continue; }
     if (arg === '--from-httpx-pipe')                    { result.fromHttpxPipe = true;  continue; }
+    if (arg === '--check-ssrf')                           { result.checkSsrf     = true;  continue; }
+    if (arg === '--check-takeover')                       { result.checkTakeover = true;  continue; }
 
     // --key=value and --key value forms
     const eqIdx = arg.indexOf('=');
@@ -124,7 +128,7 @@ function buildSessionConfig(args: Args): SessionConfig {
 function printUsage(): void {
   process.stdout.write([
     '',
-    'MANINY DIGITAL v0.3.0 — Elite Offensive Security CLI',
+    'MANINY DIGITAL v0.4.0 — Elite Offensive Security CLI',
     '',
     'Usage:',
     '  maniny --allow-hosts <hosts> --target-urls <urls> [flags]',
@@ -152,6 +156,8 @@ function printUsage(): void {
     '',
     'Integration:',
     '  --from-httpx-pipe              Read httpx NDJSON from stdin instead of --target-urls.',
+    '  --check-ssrf                   Enable SSRF detection via parameter injection.',
+    '  --check-takeover               Enable subdomain takeover fingerprint detection.',
     '',
     '  -h, --help                     Print this help.',
     '',
@@ -212,7 +218,9 @@ async function main(): Promise<void> {
     session:       buildSessionConfig(args),
     rateLimitMs:   args.rateLimitMs,
     concurrency:   args.concurrency,
-    fromHttpxPipe: args.fromHttpxPipe,
+    fromHttpxPipe:  args.fromHttpxPipe,
+    checkSsrf:      args.checkSsrf,
+    checkTakeover:  args.checkTakeover,
   };
 
   const report = await runScan(config);

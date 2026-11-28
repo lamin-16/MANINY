@@ -241,7 +241,7 @@ test('version is 0.3.0', () => {
     '--timeout 400'
   );
   const json = JSON.parse(out);
-  strictEqual(json.version, '0.3.0');
+  strictEqual(json.version, '0.4.0');
 });
 
 // ---------------------------------------------------------------------------
@@ -249,3 +249,114 @@ test('version is 0.3.0', () => {
 // ---------------------------------------------------------------------------
 console.log(`\n── Results: ${passed} passed, ${failed} failed ──\n`);
 if (failed > 0) process.exit(1);
+
+// ---------------------------------------------------------------------------
+// SSRF Prober — unit tests (offline, no real SSRF needed)
+// ---------------------------------------------------------------------------
+console.log('\n── SSRF Prober ──');
+const { runSsrfProbe } = await import('../dist/core/ssrf-prober.js');
+
+test('runSsrfProbe returns empty array when no params', async () => {
+  const findings = await runSsrfProbe('https://example.com/page');
+  ok(Array.isArray(findings));
+  strictEqual(findings.length, 0);
+});
+
+test('runSsrfProbe returns empty array for unparseable URL', async () => {
+  const findings = await runSsrfProbe('not-a-url');
+  strictEqual(findings.length, 0);
+});
+
+test('runSsrfProbe handles network error gracefully', async () => {
+  const findings = await runSsrfProbe(
+    'http://localhost:19999/page?url=test',
+    { timeoutMs: 300 }
+  );
+  ok(Array.isArray(findings));
+});
+
+// ---------------------------------------------------------------------------
+// Subdomain Takeover — unit tests (signature matching without network)
+// ---------------------------------------------------------------------------
+console.log('\n── Subdomain Takeover ──');
+const { checkSubdomainTakeover, checkSubdomainTakeovers } = await import('../dist/core/subdomain-takeover.js');
+
+test('checkSubdomainTakeover returns empty on unparseable URL', async () => {
+  const f = await checkSubdomainTakeover('not-a-url');
+  strictEqual(f.length, 0);
+});
+
+test('checkSubdomainTakeover handles network error gracefully', async () => {
+  const f = await checkSubdomainTakeover('http://localhost:19999/', { timeoutMs: 300 });
+  ok(Array.isArray(f));
+});
+
+test('checkSubdomainTakeovers processes multiple URLs', async () => {
+  const urls = [
+    'http://localhost:19998/',
+    'http://localhost:19999/',
+  ];
+  const f = await checkSubdomainTakeovers(urls, { timeoutMs: 300 });
+  ok(Array.isArray(f));
+});
+
+// ---------------------------------------------------------------------------
+// New CLI flags
+// ---------------------------------------------------------------------------
+console.log('\n── CLI v0.4.0 flags ──');
+
+test('--check-ssrf flag appears in --help', () => {
+  const out = execSync('node ./dist/cli.js --help', { encoding: 'utf-8' });
+  ok(out.includes('--check-ssrf'), '--check-ssrf missing from help');
+});
+
+test('--check-takeover flag appears in --help', () => {
+  const out = execSync('node ./dist/cli.js --help', { encoding: 'utf-8' });
+  ok(out.includes('--check-takeover'), '--check-takeover missing from help');
+});
+
+test('scan with --check-ssrf produces valid JSON', () => {
+  const out = runCli(
+    '--allow-hosts localhost',
+    '--target-urls http://localhost:19999/?url=x',
+    '--check-ssrf --timeout 400'
+  );
+  const json = JSON.parse(out);
+  ok('findings' in json);
+});
+
+test('scan with --check-takeover produces valid JSON', () => {
+  const out = runCli(
+    '--allow-hosts localhost',
+    '--target-urls http://localhost:19999/',
+    '--check-takeover --timeout 400'
+  );
+  const json = JSON.parse(out);
+  ok('findings' in json);
+});
+
+// ---------------------------------------------------------------------------
+// GitHub Actions workflows exist
+// ---------------------------------------------------------------------------
+console.log('\n── CI/CD Workflows ──');
+import { existsSync } from 'node:fs';
+
+test('ci.yml exists', () => {
+  ok(existsSync('.github/workflows/ci.yml'));
+});
+
+test('release.yml exists', () => {
+  ok(existsSync('.github/workflows/release.yml'));
+});
+
+import { readFileSync as readFs } from 'node:fs';
+
+test('ci.yml contains Node 20 and 22 matrix', () => {
+  const ci = readFs('.github/workflows/ci.yml', 'utf-8');
+  ok(ci.includes("'20'") && ci.includes("'22'"));
+});
+
+test('release.yml triggers on version tags', () => {
+  const rel = readFs('.github/workflows/release.yml', 'utf-8');
+  ok(rel.includes("tags: ['v*']"));
+});
